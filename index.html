@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoje Tem - Cartão Digital de Carimbos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-color: #121214;
+      --card-bg: #1e1e24;
+      --accent-color: #f59e0b;
+      --accent-hover: #d97706;
+      --text-color: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --danger-color: #ef4444;
+      --success-color: #10b981;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding-bottom: 80px;
+    }
+    .app-header {
+      background-color: var(--card-bg);
+      border-bottom: 2px solid var(--accent-color);
+      padding: 15px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .app-logo {
+      max-height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--accent-color);
+    }
+    .app-title {
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--accent-color);
+      margin-top: 8px;
+      margin-bottom: 0;
+      text-transform: uppercase;
+    }
+    .card-custom {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid #2d2d35;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+    }
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      padding: 15px;
+    }
+    .stamp-slot {
+      aspect-ratio: 1;
+      background-color: #141418;
+      border: 2px dashed #3a3a45;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      position: relative;
+    }
+    .stamp-slot.stamped {
+      border: 2px solid var(--accent-color);
+      background-color: rgba(245, 158, 11, 0.15);
+      color: var(--accent-color);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .stamp-slot.red-cross {
+      border: 2px solid var(--danger-color);
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--danger-color);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .nav-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--card-bg);
+      border-top: 1px solid #2d2d35;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 1000;
+    }
+    .nav-item-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.75rem;
+    }
+    .nav-item-btn.active {
+      color: var(--accent-color);
+    }
+    .nav-item-btn i {
+      font-size: 1.2rem;
+      margin-bottom: 3px;
+    }
+    .badge-admin {
+      background-color: var(--accent-color);
+      color: #000;
+      font-weight: bold;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .btn-accent {
+      background-color: var(--accent-color);
+      color: #000;
+      font-weight: 700;
+      border: none;
+    }
+    .btn-accent:hover {
+      background-color: var(--accent-hover);
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <!-- Logótipo Oficial -->
+    <img src="https://i.ibb.co/6P0J9XG/hoje-tem-logo.png" alt="Hoje Tem Logo" class="app-logo" onerror="this.src='https://via.placeholder.com/80/f59e0b/000000?text=HOJE+TEM'">
+    <h3 class="app-title">Hoje Tem</h3>
+  </header>
+
+  <div class="container mt-3" id="app-content">
+    <!-- O conteúdo da App é injetado aqui pelo JavaScript -->
+  </div>
+
+  <nav class="nav-bottom">
+    <button class="nav-item-btn active" onclick="switchTab('card')">
+      <i class="fa-solid fa-id-card"></i> Cartão
+    </button>
+    <button class="nav-item-btn" onclick="switchTab('events')">
+      <i class="fa-solid fa-calendar-days"></i> Jantares
+    </button>
+    <button class="nav-item-btn" onclick="switchTab('ranking')">
+      <i class="fa-solid fa-trophy"></i> Ranking
+    </button>
+    <button class="nav-item-btn" onclick="switchTab('admin')">
+      <i class="fa-solid fa-user-shield"></i> Admin
+    </button>
+  </nav>
+
+  <script>
+    // Estado do Utilizador Ativo
+    let currentUser = {
+      name: "Diogo Salgueiro",
+      phone: "910000000",
+      isAdmin: true,
+      stamps: [true, true, true, false, false, false, false, false, false, false],
+      redCrosses: [false, false, false, true, false, false, false, false, false, false]
+    };
+
+    let members = [
+      { id: 1, name: "Diogo Salgueiro", phone: "910000000", stamps: 3, crosses: 1 },
+      { id: 2, name: "João Canastra", phone: "912345678", stamps: 4, crosses: 0 },
+      { id: 3, name: "Maria Silva", phone: "919876543", stamps: 2, crosses: 2 }
+    ];
+
+    let pendingRequests = [
+      { id: 101, memberName: "João Canastra", date: "Jantar de Outubro" }
+    ];
+
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      const content = document.getElementById('app-content');
+
+      if (tab === 'card') {
+        renderCardTab(content);
+      } else if (tab === 'events') {
+        renderEventsTab(content);
+      } else if (tab === 'ranking') {
+        renderRankingTab(content);
+      } else if (tab === 'admin') {
+        renderAdminTab(content);
+      }
+    }
+
+    function renderCardTab(container) {
+      let slotsHTML = '';
+      for (let i = 0; i < 10; i++) {
+        if (currentUser.stamps[i]) {
+          slotsHTML += `<div class="stamp-slot stamped"><i class="fa-solid fa-beer-mug-empty"></i></div>`;
+        } else if (currentUser.redCrosses[i]) {
+          slotsHTML += `<div class="stamp-slot red-cross"><i class="fa-solid fa-xmark"></i></div>`;
+        } else {
+          slotsHTML += `<div class="stamp-slot">${i+1}</div>`;
+        }
+      }
+
+      container.innerHTML = `
+        <div class="card-custom p-3 text-center">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="m-0">${currentUser.name}</h5>
+            ${currentUser.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}
+          </div>
+          <p class="text-secondary small">Telemóvel: ${currentUser.phone}</p>
+          <div class="stamp-grid">
+            ${slotsHTML}
+          </div>
+          <button class="btn btn-accent w-100 mt-3" onclick="requestStamp()">
+            <i class="fa-solid fa-paper-plane me-2"></i>Pedir Carimbo do Jantar
+          </button>
+        </div>
+      `;
+    }
+
+    function renderEventsTab(container) {
+      container.innerHTML = `
+        <div class="card-custom p-3">
+          <h5 class="text-warning"><i class="fa-solid fa-utensils me-2"></i>Próximo Jantar</h5>
+          <h4>Jantar de Confraternização</h4>
+          <p class="text-secondary mb-1"><i class="fa-regular fa-calendar me-2"></i>15 de Novembro de 2026</p>
+          <p class="text-secondary"><i class="fa-solid fa-location-dot me-2"></i>Restaurante O Convento</p>
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-success flex-grow-1" onclick="alert('Presença confirmada!')">Vou!</button>
+            <button class="btn btn-outline-danger flex-grow-1" onclick="alert('Marcado como Não Vou.')">Não Vou</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRankingTab(container) {
+      let list = members.map((m, idx) => `
+        <div class="d-flex justify-content-between align-items-center p-2 mb-2 style="background: #18181c; border-radius: 8px;">
+          <div>
+            <strong>#${idx+1} ${m.name}</strong>
+          </div>
+          <div>
+            <span class="badge bg-warning text-dark me-1">🍺 ${m.stamps}</span>
+            <span class="badge bg-danger">❌ ${m.crosses}</span>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="card-custom p-3">
+          <h5 class="text-warning mb-3"><i class="fa-solid fa-trophy me-2"></i>Ranking do Grupo</h5>
+          ${list}
+        </div>
+      `;
+    }
+
+    function renderAdminTab(container) {
+      let reqs = pendingRequests.map(r => `
+        <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-dark rounded">
+          <span>${r.memberName}</span>
+          <div>
+            <button class="btn btn-sm btn-success" onclick="approveReq(${r.id})">Aprovar</button>
+            <button class="btn btn-sm btn-danger" onclick="rejectReq(${r.id})">Recusar</button>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="card-custom p-3">
+          <h5 class="text-warning mb-3"><i class="fa-solid fa-user-shield me-2"></i>Painel de Administração</h5>
+          <h6 class="mt-3">Pedidos de Carimbo Pendentes:</h6>
+          ${reqs.length ? reqs : '<p class="text-secondary small">Nenhum pedido pendente.</p>'}
+          
+          <hr class="border-secondary">
+          <h6>Gestão de Membros:</h6>
+          <button class="btn btn-accent btn-sm w-100 my-2" onclick="alert('Funcionalidade de Adicionar Membro')">+ Adicionar Novo Membro</button>
+        </div>
+      `;
+    }
+
+    function requestStamp() {
+      alert("Pedido de carimbo enviado ao Administrador (Diogo Salgueiro)!");
+    }
+
+    function approveReq(id) {
+      pendingRequests = pendingRequests.filter(r => r.id !== id);
+      alert("Carimbo aprovado com sucesso!");
+      renderAdminTab(document.getElementById('app-content'));
+    }
+
+    function rejectReq(id) {
+      pendingRequests = pendingRequests.filter(r => r.id !== id);
+      alert("Pedido recusado.");
+      renderAdminTab(document.getElementById('app-content'));
+    }
+
+    // Inicializa na aba do cartão
+    renderCardTab(document.getElementById('app-content'));
+  </script>
+</body>
+</html>
