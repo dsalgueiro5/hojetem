@@ -158,7 +158,9 @@
   <script>
     let appConfig = JSON.parse(localStorage.getItem('hojetem_config')) || { bgUrl: '' };
     let activeUser = JSON.parse(localStorage.getItem('hojetem_user')) || null;
-    let members = JSON.parse(localStorage.getItem('hojetem_members')) || [];
+    let members = JSON.parse(localStorage.getItem('hojetem_members')) || [
+      { id: 1, name: "Diogo Salgueiro", phone: "910000000", pass: "admin123", isAdmin: true, stamps: 0, crosses: 0 }
+    ];
     let events = JSON.parse(localStorage.getItem('hojetem_events')) || [
       { id: 1, title: "Jantar do Grupo Holstein", date: "2026-11-15", location: "Torres Novas", rsvp: {} }
     ];
@@ -201,16 +203,25 @@
           <h4 class="text-center text-warning mb-4"><i class="fa-solid fa-right-to-bracket me-2"></i>Entrar no Hoje Tem</h4>
           <div class="mb-3">
             <label class="form-label small text-secondary">Nº de Telemóvel</label>
-            <input type="tel" id="loginPhone" class="form-control bg-dark text-white border-secondary" placeholder="Ex: 912345678">
+            <input type="tel" id="loginPhone" class="form-control bg-dark text-white border-secondary" placeholder="Ex: 910000000">
           </div>
           <div class="mb-4">
             <label class="form-label small text-secondary">Palavra-passe</label>
             <input type="password" id="loginPass" class="form-control bg-dark text-white border-secondary" placeholder="Tua palavra-passe">
           </div>
           <button class="btn btn-accent w-100 py-2 mb-3" onclick="handleLogin()">Entrar</button>
+          
+          <div class="p-2 bg-dark rounded border border-secondary mb-3 text-center">
+            <small class="text-secondary d-block">Acesso Padrão Admin:</small>
+            <small class="text-warning fw-bold">910000000 | admin123</small>
+          </div>
+
           <hr class="border-secondary">
-          <button class="btn btn-outline-light btn-sm w-100" onclick="renderSetupAccountView(document.getElementById('app-content'))">
+          <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="renderSetupAccountView(document.getElementById('app-content'))">
             Configurar Os Meus Dados / Criar Conta
+          </button>
+          <button class="btn btn-outline-danger btn-sm w-100" onclick="resetAppData()">
+            <i class="fa-solid fa-rotate-left me-1"></i>Limpar Memória do Safari (Resolver Erros)
           </button>
         </div>
       `;
@@ -226,8 +237,14 @@
         saveState();
         initApp();
       } else {
-        alert("Telemóvel ou palavra-passe incorretos!");
+        alert("Telemóvel ou palavra-passe incorretos! Usa 910000000 e admin123 se precisares de entrar como Admin.");
       }
+    }
+
+    function resetAppData() {
+      localStorage.clear();
+      alert("Memória limpa! A página vai recarregar.");
+      location.reload();
     }
 
     function renderSetupAccountView(container) {
@@ -274,7 +291,7 @@
           name: name,
           phone: phone,
           pass: pass,
-          isAdmin: members.length === 0,
+          isAdmin: members.length === 0 || phone === "910000000",
           stamps: 0,
           crosses: 0
         };
