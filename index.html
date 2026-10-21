@@ -67,11 +67,6 @@
       gap: 12px;
       padding: 15px 0;
     }
-    @media (min-width: 400px) {
-      .stamp-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
     .stamp-slot {
       aspect-ratio: 1;
       background-color: #ffffff;
@@ -167,7 +162,7 @@
     <button class="nav-item-btn" onclick="switchTab('ranking')">
       <i class="fa-solid fa-trophy"></i> Ranking
     </button>
-    <button class="nav-item-btn" onclick="switchTab('admin')">
+    <button class="nav-item-btn" id="admin-nav-btn" style="display: none;" onclick="switchTab('admin')">
       <i class="fa-solid fa-user-shield"></i> Admin
     </button>
   </nav>
@@ -181,9 +176,7 @@
     let members = JSON.parse(localStorage.getItem('hojetem_members')) || [
       { id: 1, name: "Diogo Salgueiro", phone: "910000000", pass: "admin123", isAdmin: true, stamps: 0, crosses: 0 }
     ];
-    let events = JSON.parse(localStorage.getItem('hojetem_events')) || [
-      { id: 1, title: "Jantar do Grupo Holstein", date: "2026-11-15", location: "Torres Novas", rsvp: {} }
-    ];
+    let events = JSON.parse(localStorage.getItem('hojetem_events')) || [];
     let stampRequests = JSON.parse(localStorage.getItem('hojetem_requests')) || [];
 
     function saveState() {
@@ -199,12 +192,19 @@
     function initApp() {
       const content = document.getElementById('app-content');
       const nav = document.getElementById('app-nav');
+      const adminBtn = document.getElementById('admin-nav-btn');
 
       if (!activeUser) {
         nav.style.display = 'none';
         renderLoginView(content);
       } else {
         nav.style.display = 'flex';
+        // Mostrar o botão de Admin APENAS se o utilizador for Admin
+        if (activeUser.isAdmin) {
+          adminBtn.style.display = 'flex';
+        } else {
+          adminBtn.style.display = 'none';
+        }
         renderCardTab(content);
       }
     }
@@ -215,7 +215,7 @@
           <h4 class="text-center fw-bold mb-4" style="color: #111827;"><i class="fa-solid fa-right-to-bracket me-2 text-warning"></i>Entrar no Hoje Tem</h4>
           <div class="mb-3">
             <label class="form-label small text-secondary">Nº de Telemóvel</label>
-            <input type="tel" id="loginPhone" class="form-control bg-white text-dark border-secondary" placeholder="Ex: 910000000">
+            <input type="tel" id="loginPhone" class="form-control bg-white text-dark border-secondary" placeholder="Ex: 912345678">
           </div>
           <div class="mb-4">
             <label class="form-label small text-secondary">Palavra-passe</label>
@@ -224,7 +224,7 @@
           <button class="btn btn-accent w-100 py-2 mb-3" onclick="handleLogin()">Entrar</button>
           <hr class="border-secondary">
           <button class="btn btn-outline-dark btn-sm w-100" onclick="renderSetupAccountView(document.getElementById('app-content'))">
-            Configurar Os Meus Dados / Criar Conta
+            Primeiro Acesso / Ativar Conta
           </button>
         </div>
       `;
@@ -247,20 +247,21 @@
     function renderSetupAccountView(container) {
       container.innerHTML = `
         <div class="card-custom p-4 mt-3">
-          <h4 class="text-center fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-gear me-2 text-warning"></i>Configurar Dados</h4>
+          <h4 class="text-center fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-gear me-2 text-warning"></i>Ativar Conta</h4>
+          <p class="small text-secondary text-center">Introduz o teu telemóvel autorizado pelo Admin para criar a tua palavra-passe.</p>
           <div class="mb-3">
-            <label class="form-label small text-secondary">Nome Completo</label>
-            <input type="text" id="setupName" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.name : ''}" placeholder="O teu nome">
+            <label class="form-label small text-secondary">Telemóvel Autorizado</label>
+            <input type="tel" id="setupPhone" class="form-control bg-white text-dark border-secondary" placeholder="Ex: 912345678">
           </div>
           <div class="mb-3">
-            <label class="form-label small text-secondary">Telemóvel Real</label>
-            <input type="tel" id="setupPhone" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.phone : ''}" placeholder="Ex: 912345678">
+            <label class="form-label small text-secondary">O Teu Nome Completo</label>
+            <input type="text" id="setupName" class="form-control bg-white text-dark border-secondary" placeholder="Ex: João Silva">
           </div>
           <div class="mb-4">
-            <label class="form-label small text-secondary">Palavra-passe</label>
-            <input type="password" id="setupPass" class="form-control bg-white text-dark border-secondary" placeholder="Escolhe uma palavra-passe">
+            <label class="form-label small text-secondary">Define a tua Palavra-passe</label>
+            <input type="password" id="setupPass" class="form-control bg-white text-dark border-secondary" placeholder="Tua palavra-passe">
           </div>
-          <button class="btn btn-accent w-100 py-2 mb-2" onclick="saveUserData()">Guardar Dados</button>
+          <button class="btn btn-accent w-100 py-2 mb-2" onclick="saveUserData()">Ativar Conta</button>
           <button class="btn btn-link text-secondary w-100 btn-sm" onclick="initApp()">Voltar</button>
         </div>
       `;
@@ -276,28 +277,22 @@
         return;
       }
 
-      if (activeUser) {
-        activeUser.name = name;
-        activeUser.phone = phone;
-        activeUser.pass = pass;
-        const idx = members.findIndex(m => m.id === activeUser.id);
-        if (idx !== -1) members[idx] = activeUser;
-      } else {
-        activeUser = {
-          id: Date.now(),
-          name: name,
-          phone: phone,
-          pass: pass,
-          isAdmin: members.length === 0 || phone === "910000000",
-          stamps: 0,
-          crosses: 0
-        };
-        members.push(activeUser);
-      }
+      const existingMember = members.find(m => m.phone === phone);
 
-      saveState();
-      alert("Dados guardados com sucesso!");
-      initApp();
+      if (existingMember) {
+        if (existingMember.pass && existingMember.pass !== '') {
+          alert("Esta conta já está ativada. Faz login diretamente no ecrã inicial!");
+          return;
+        }
+        existingMember.name = name;
+        existingMember.pass = pass;
+        activeUser = existingMember;
+        saveState();
+        alert("Conta ativada com sucesso!");
+        initApp();
+      } else {
+        alert("Este número de telemóvel ainda não foi autorizado pelo Administrador!");
+      }
     }
 
     function logout() {
@@ -346,10 +341,7 @@
             <h5 class="m-0 fw-bold">${activeUser.name}</h5>
             ${activeUser.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}
           </div>
-          <p class="text-secondary small mb-2"><i class="fa-solid fa-phone me-1"></i>${activeUser.phone}</p>
-          <button class="btn btn-outline-dark btn-sm mb-3" onclick="renderSetupAccountView(document.getElementById('app-content'))">
-            <i class="fa-solid fa-pen-to-square me-1"></i>Editar Meus Dados
-          </button>
+          <p class="text-secondary small mb-3"><i class="fa-solid fa-phone me-1"></i>${activeUser.phone}</p>
           
           <div class="stamp-grid">
             ${slotsHTML}
@@ -454,7 +446,7 @@
     }
 
     function renderAdminTab(container) {
-      if (!activeUser.isAdmin) {
+      if (!activeUser || !activeUser.isAdmin) {
         container.innerHTML = `<div class="card-custom p-4 text-center mt-3"><p class="text-danger m-0">Apenas os Administradores têm acesso a este painel.</p></div>`;
         return;
       }
@@ -515,6 +507,14 @@
 
           <hr>
 
+          <h6 class="fw-bold text-dark">📲 Autorizar Novo Telemóvel (Membro):</h6>
+          <div class="d-flex gap-2 mb-3">
+            <input type="tel" id="newMemberPhone" class="form-control form-control-sm bg-white text-dark border-secondary" placeholder="Ex: 919999999">
+            <button class="btn btn-sm btn-accent" onclick="addAuthorizedNumber()">Autorizar</button>
+          </div>
+
+          <hr>
+
           <h6 class="fw-bold text-dark">🎯 Número de Espaços do Cartão:</h6>
           <div class="d-flex gap-2 mb-3">
             <input type="number" id="maxStampsInput" class="form-control form-control-sm bg-white text-dark border-secondary" value="${appConfig.maxStamps || 6}" min="1" max="20">
@@ -548,6 +548,34 @@
           ${memberList}
         </div>
       `;
+    }
+
+    function addAuthorizedNumber() {
+      const phone = document.getElementById('newMemberPhone').value.trim();
+
+      if (!phone) {
+        alert("Por favor insere um número de telemóvel!");
+        return;
+      }
+
+      if (members.some(m => m.phone === phone)) {
+        alert("Este número já está na lista de membros!");
+        return;
+      }
+
+      members.push({
+        id: Date.now(),
+        name: 'Membro Convidado',
+        phone: phone,
+        pass: '',
+        isAdmin: false,
+        stamps: 0,
+        crosses: 0
+      });
+
+      saveState();
+      alert(`Telemóvel ${phone} autorizado com sucesso!`);
+      renderAdminTab(document.getElementById('app-content'));
     }
 
     function updateMaxStamps() {
