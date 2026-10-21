@@ -9,7 +9,7 @@
   <style>
     :root {
       --bg-color: #000000;
-      --card-bg: rgba(18, 18, 20, 0.92);
+      --card-bg: rgba(20, 20, 24, 0.94);
       --accent-color: #f59e0b; /* Amarelo Cerveja */
       --accent-hover: #d97706;
       --text-color: #ffffff;
@@ -19,19 +19,20 @@
     }
     body {
       background-color: var(--bg-color);
-      background-size: cover;
-      background-position: center;
+      background-size: contain;
+      background-position: center top;
+      background-repeat: no-repeat;
       background-attachment: fixed;
       color: var(--text-color);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding-bottom: 80px;
+      padding-bottom: 85px;
       min-height: 100vh;
     }
     .app-header {
-      background-color: rgba(10, 10, 12, 0.95);
+      background-color: rgba(10, 10, 12, 0.96);
       backdrop-filter: blur(10px);
       border-bottom: 2px solid var(--accent-color);
-      padding: 15px;
+      padding: 14px;
       text-align: center;
       position: sticky;
       top: 0;
@@ -43,15 +44,15 @@
       color: var(--accent-color);
       margin: 0;
       text-transform: uppercase;
-      font-size: 1.5rem;
+      font-size: 1.4rem;
     }
     .card-custom {
       background: var(--card-bg);
       backdrop-filter: blur(12px);
       border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.8);
-      margin-bottom: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.85);
+      margin-bottom: 18px;
     }
     .stamp-grid {
       display: grid;
@@ -61,7 +62,7 @@
     }
     .stamp-slot {
       aspect-ratio: 1;
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(0, 0, 0, 0.8);
       border: 2px dashed #444;
       border-radius: 12px;
       display: flex;
@@ -70,7 +71,6 @@
       font-size: 1.2rem;
       font-weight: bold;
       color: var(--text-secondary);
-      overflow: hidden;
     }
     .stamp-slot.stamped {
       border: 2px solid var(--accent-color);
@@ -92,7 +92,7 @@
       border-top: 1px solid rgba(255, 255, 255, 0.12);
       display: flex;
       justify-content: space-around;
-      padding: 12px 0;
+      padding: 10px 0;
       z-index: 1000;
     }
     .nav-item-btn {
@@ -109,8 +109,8 @@
       font-weight: bold;
     }
     .nav-item-btn i {
-      font-size: 1.3rem;
-      margin-bottom: 3px;
+      font-size: 1.25rem;
+      margin-bottom: 2px;
     }
     .btn-accent {
       background-color: var(--accent-color);
@@ -164,10 +164,11 @@
     let events = JSON.parse(localStorage.getItem('hojetem_events')) || [
       { id: 1, title: "Jantar do Grupo Holstein", date: "2026-11-15", location: "Torres Novas", rsvp: {} }
     ];
+    let stampRequests = JSON.parse(localStorage.getItem('hojetem_requests')) || [];
 
     function applyConfig() {
       if (appConfig.bgUrl) {
-        document.body.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.92)), url('${appConfig.bgUrl}')`;
+        document.body.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.94)), url('${appConfig.bgUrl}')`;
       } else {
         document.body.style.backgroundImage = 'none';
       }
@@ -176,6 +177,7 @@
     function saveState() {
       localStorage.setItem('hojetem_members', JSON.stringify(members));
       localStorage.setItem('hojetem_events', JSON.stringify(events));
+      localStorage.setItem('hojetem_requests', JSON.stringify(stampRequests));
       localStorage.setItem('hojetem_config', JSON.stringify(appConfig));
       if (activeUser) {
         localStorage.setItem('hojetem_user', JSON.stringify(activeUser));
@@ -210,18 +212,9 @@
             <input type="password" id="loginPass" class="form-control bg-dark text-white border-secondary" placeholder="Tua palavra-passe">
           </div>
           <button class="btn btn-accent w-100 py-2 mb-3" onclick="handleLogin()">Entrar</button>
-          
-          <div class="p-2 bg-dark rounded border border-secondary mb-3 text-center">
-            <small class="text-secondary d-block">Acesso Padrão Admin:</small>
-            <small class="text-warning fw-bold">910000000 | admin123</small>
-          </div>
-
           <hr class="border-secondary">
-          <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="renderSetupAccountView(document.getElementById('app-content'))">
+          <button class="btn btn-outline-light btn-sm w-100" onclick="renderSetupAccountView(document.getElementById('app-content'))">
             Configurar Os Meus Dados / Criar Conta
-          </button>
-          <button class="btn btn-outline-danger btn-sm w-100" onclick="resetAppData()">
-            <i class="fa-solid fa-rotate-left me-1"></i>Limpar Memória do Safari (Resolver Erros)
           </button>
         </div>
       `;
@@ -237,14 +230,8 @@
         saveState();
         initApp();
       } else {
-        alert("Telemóvel ou palavra-passe incorretos! Usa 910000000 e admin123 se precisares de entrar como Admin.");
+        alert("Telemóvel ou palavra-passe incorretos!");
       }
-    }
-
-    function resetAppData() {
-      localStorage.clear();
-      alert("Memória limpa! A página vai recarregar.");
-      location.reload();
     }
 
     function renderSetupAccountView(container) {
@@ -335,6 +322,8 @@
         }
       }
 
+      const hasPending = stampRequests.some(r => r.memberId === activeUser.id);
+
       container.innerHTML = `
         <div class="card-custom p-3 text-center">
           <div class="d-flex justify-content-between align-items-center mb-1">
@@ -350,12 +339,24 @@
             ${slotsHTML}
           </div>
 
-          <button class="btn btn-accent w-100 mt-3 py-2" onclick="alert('Pedido de carimbo enviado ao Admin!')">
-            <i class="fa-solid fa-paper-plane me-2"></i>Pedir Carimbo do Jantar
+          <button class="btn ${hasPending ? 'btn-secondary' : 'btn-accent'} w-100 mt-3 py-2" onclick="requestStamp()" ${hasPending ? 'disabled' : ''}>
+            <i class="fa-solid fa-paper-plane me-2"></i>${hasPending ? 'Pedido Enviado (Aguarda Aprovação)' : 'Pedir Carimbo do Jantar'}
           </button>
           <button class="btn btn-link text-danger btn-sm mt-2" onclick="logout()">Terminar Sessão</button>
         </div>
       `;
+    }
+
+    function requestStamp() {
+      stampRequests.push({
+        id: Date.now(),
+        memberId: activeUser.id,
+        memberName: activeUser.name,
+        date: new Date().toLocaleDateString('pt-PT')
+      });
+      saveState();
+      alert("Pedido de carimbo enviado para o Administrador!");
+      renderCardTab(document.getElementById('app-content'));
     }
 
     function renderEventsTab(container) {
@@ -442,6 +443,35 @@
         return;
       }
 
+      // Notificações / Pedidos Pendentes
+      let requestsHTML = stampRequests.length === 0 
+        ? `<p class="text-secondary small m-0">Nenhum pedido pendente.</p>`
+        : stampRequests.map(req => `
+            <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-dark rounded border border-warning">
+              <div>
+                <strong>${req.memberName}</strong><br>
+                <small class="text-secondary">${req.date}</small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-success me-1" onclick="approveRequest(${req.id}, ${req.memberId})">Aprovar 🍺</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="rejectRequest(${req.id})">Recusar</button>
+              </div>
+            </div>
+          `).join('');
+
+      // Gestão de Jantares (Com opção de apagar)
+      let eventsAdminHTML = events.length === 0 
+        ? `<p class="text-secondary small">Nenhum jantar registado.</p>`
+        : events.map(ev => `
+            <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-dark rounded border border-secondary">
+              <div>
+                <strong>${ev.title}</strong> (${ev.date})
+              </div>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteEvent(${ev.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          `).join('');
+
+      // Gestão de Membros
       let memberList = members.map(m => `
         <div class="p-2 mb-2 bg-dark rounded border border-secondary">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -465,7 +495,14 @@
         <div class="card-custom p-3">
           <h5 class="text-warning mb-3"><i class="fa-solid fa-user-shield me-2"></i>Painel Admin</h5>
           
-          <h6 class="text-secondary mt-3">🎨 Carregar Foto de Fundo da Galeria:</h6>
+          <h6 class="text-warning mt-2">🔔 Pedidos de Carimbo Pendentes:</h6>
+          <div class="mb-3">
+            ${requestsHTML}
+          </div>
+
+          <hr class="border-secondary">
+
+          <h6 class="text-secondary">🎨 Ajustar Foto de Fundo da Galeria:</h6>
           <div class="mb-3">
             <input type="file" id="bgFileInput" accept="image/*" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" onchange="uploadBgFromGallery(this)">
             ${appConfig.bgUrl ? '<button class="btn btn-sm btn-outline-danger w-100" onclick="removeBgImage()">Remover Foto Atual</button>' : ''}
@@ -473,12 +510,15 @@
 
           <hr class="border-secondary">
 
-          <h6 class="text-secondary">📅 Adicionar Novo Jantar:</h6>
+          <h6 class="text-secondary">📅 Gestão e Criação de Jantares:</h6>
+          <div class="mb-3">
+            ${eventsAdminHTML}
+          </div>
           <div class="mb-2">
             <input type="text" id="eventTitle" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" placeholder="Nome do Jantar">
             <input type="date" id="eventDate" class="form-control form-control-sm bg-dark text-white border-secondary mb-1">
             <input type="text" id="eventLocation" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" placeholder="Localização">
-            <button class="btn btn-sm btn-accent w-100" onclick="addEvent()">Criar Jantar</button>
+            <button class="btn btn-sm btn-accent w-100" onclick="addEvent()">Criar Novo Jantar</button>
           </div>
 
           <hr class="border-secondary">
@@ -489,13 +529,39 @@
       `;
     }
 
+    function approveRequest(reqId, memberId) {
+      const m = members.find(x => x.id === memberId);
+      if (m && m.stamps < 10) {
+        m.stamps++;
+      }
+      stampRequests = stampRequests.filter(r => r.id !== reqId);
+      saveState();
+      alert("Carimbo aprovado e atribuído!");
+      renderAdminTab(document.getElementById('app-content'));
+    }
+
+    function rejectRequest(reqId) {
+      stampRequests = stampRequests.filter(r => r.id !== reqId);
+      saveState();
+      alert("Pedido recusado.");
+      renderAdminTab(document.getElementById('app-content'));
+    }
+
+    function deleteEvent(eventId) {
+      if (confirm("Tens a certeza que queres eliminar este jantar?")) {
+        events = events.filter(e => e.id !== eventId);
+        saveState();
+        renderAdminTab(document.getElementById('app-content'));
+      }
+    }
+
     function uploadBgFromGallery(input) {
       if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
           appConfig.bgUrl = e.target.result;
           saveState();
-          alert("Foto da galeria aplicada no fundo da app!");
+          alert("Foto da galeria ajustada e aplicada!");
         };
         reader.readAsDataURL(input.files[0]);
       }
