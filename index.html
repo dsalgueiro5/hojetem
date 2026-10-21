@@ -8,78 +8,90 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg-color: #000000;
-      --card-bg: rgba(20, 20, 24, 0.94);
+      --bg-color: #ffffff;
+      --card-bg: #f3f4f6; /* Cinza clarinho */
       --accent-color: #f59e0b; /* Amarelo Cerveja */
-      --accent-hover: #d97706;
-      --text-color: #ffffff;
-      --text-secondary: #a1a1aa;
+      --text-color: #111827; /* Preto/Cinza Escuro */
+      --text-secondary: #4b5563;
       --danger-color: #ef4444;
       --success-color: #10b981;
     }
     body {
       background-color: var(--bg-color);
-      background-size: contain;
-      background-position: center top;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
       color: var(--text-color);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       padding-bottom: 85px;
       min-height: 100vh;
     }
     .app-header {
-      background-color: rgba(10, 10, 12, 0.96);
-      backdrop-filter: blur(10px);
+      background-color: #ffffff;
       border-bottom: 2px solid var(--accent-color);
-      padding: 14px;
+      padding: 12px;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
     .app-title {
       font-weight: 900;
       letter-spacing: 2px;
-      color: var(--accent-color);
+      color: #111827;
       margin: 0;
       text-transform: uppercase;
       font-size: 1.4rem;
     }
+    .hero-photo-container {
+      text-align: center;
+      margin: 15px 0;
+    }
+    .hero-photo {
+      max-width: 80%;
+      max-height: 220px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border: 3px solid #ffffff;
+      object-fit: contain;
+    }
     .card-custom {
       background: var(--card-bg);
-      backdrop-filter: blur(12px);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.85);
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
       margin-bottom: 18px;
+      color: var(--text-color);
     }
     .stamp-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       padding: 15px 0;
+    }
+    @media (min-width: 400px) {
+      .stamp-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
     .stamp-slot {
       aspect-ratio: 1;
-      background-color: rgba(0, 0, 0, 0.8);
-      border: 2px dashed #444;
+      background-color: #ffffff;
+      border: 2px dashed #d1d5db;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: bold;
       color: var(--text-secondary);
     }
     .stamp-slot.stamped {
       border: 2px solid var(--accent-color);
-      background-color: rgba(245, 158, 11, 0.25);
+      background-color: #fef3c7;
       color: var(--accent-color);
     }
     .stamp-slot.red-cross {
       border: 2px solid var(--danger-color);
-      background-color: rgba(239, 68, 68, 0.25);
+      background-color: #fee2e2;
       color: var(--danger-color);
     }
     .nav-bottom {
@@ -87,9 +99,8 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background-color: rgba(10, 10, 12, 0.98);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      background-color: #ffffff;
+      border-top: 1px solid #e5e7eb;
       display: flex;
       justify-content: space-around;
       padding: 10px 0;
@@ -103,28 +114,32 @@
       flex-direction: column;
       align-items: center;
       font-size: 0.75rem;
+      font-weight: 600;
     }
     .nav-item-btn.active {
-      color: var(--accent-color);
-      font-weight: bold;
+      color: #111827;
+      font-weight: 800;
     }
     .nav-item-btn i {
       font-size: 1.25rem;
       margin-bottom: 2px;
     }
+    .nav-item-btn.active i {
+      color: var(--accent-color);
+    }
     .btn-accent {
       background-color: var(--accent-color);
-      color: #000000;
+      color: #ffffff;
       font-weight: 700;
       border: none;
     }
     .btn-accent:hover {
-      background-color: var(--accent-hover);
-      color: #000000;
+      background-color: #d97706;
+      color: #ffffff;
     }
     .badge-admin {
-      background-color: var(--accent-color);
-      color: #000;
+      background-color: #111827;
+      color: var(--accent-color);
       font-weight: bold;
       font-size: 0.7rem;
       padding: 3px 8px;
@@ -135,10 +150,12 @@
 <body>
 
   <header class="app-header">
-    <div class="app-title"><i class="fa-solid fa-beer-mug-empty me-2"></i>Hoje Tem</div>
+    <div class="app-title">
+      <i class="fa-solid fa-beer-mug-empty me-2" style="color: var(--accent-color);"></i>Hoje Tem
+    </div>
   </header>
 
-  <div class="container mt-3" id="app-content"></div>
+  <div class="container mt-2" id="app-content"></div>
 
   <nav class="nav-bottom" id="app-nav" style="display: none;">
     <button class="nav-item-btn active" onclick="switchTab('card')">
@@ -156,7 +173,10 @@
   </nav>
 
   <script>
-    let appConfig = JSON.parse(localStorage.getItem('hojetem_config')) || { bgUrl: '' };
+    let appConfig = JSON.parse(localStorage.getItem('hojetem_config')) || { 
+      bgUrl: '',
+      maxStamps: 6 
+    };
     let activeUser = JSON.parse(localStorage.getItem('hojetem_user')) || null;
     let members = JSON.parse(localStorage.getItem('hojetem_members')) || [
       { id: 1, name: "Diogo Salgueiro", phone: "910000000", pass: "admin123", isAdmin: true, stamps: 0, crosses: 0 }
@@ -166,14 +186,6 @@
     ];
     let stampRequests = JSON.parse(localStorage.getItem('hojetem_requests')) || [];
 
-    function applyConfig() {
-      if (appConfig.bgUrl) {
-        document.body.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.94)), url('${appConfig.bgUrl}')`;
-      } else {
-        document.body.style.backgroundImage = 'none';
-      }
-    }
-
     function saveState() {
       localStorage.setItem('hojetem_members', JSON.stringify(members));
       localStorage.setItem('hojetem_events', JSON.stringify(events));
@@ -182,11 +194,9 @@
       if (activeUser) {
         localStorage.setItem('hojetem_user', JSON.stringify(activeUser));
       }
-      applyConfig();
     }
 
     function initApp() {
-      applyConfig();
       const content = document.getElementById('app-content');
       const nav = document.getElementById('app-nav');
 
@@ -201,19 +211,19 @@
 
     function renderLoginView(container) {
       container.innerHTML = `
-        <div class="card-custom p-4">
-          <h4 class="text-center text-warning mb-4"><i class="fa-solid fa-right-to-bracket me-2"></i>Entrar no Hoje Tem</h4>
+        <div class="card-custom p-4 mt-3">
+          <h4 class="text-center fw-bold mb-4" style="color: #111827;"><i class="fa-solid fa-right-to-bracket me-2 text-warning"></i>Entrar no Hoje Tem</h4>
           <div class="mb-3">
             <label class="form-label small text-secondary">Nº de Telemóvel</label>
-            <input type="tel" id="loginPhone" class="form-control bg-dark text-white border-secondary" placeholder="Ex: 910000000">
+            <input type="tel" id="loginPhone" class="form-control bg-white text-dark border-secondary" placeholder="Ex: 910000000">
           </div>
           <div class="mb-4">
             <label class="form-label small text-secondary">Palavra-passe</label>
-            <input type="password" id="loginPass" class="form-control bg-dark text-white border-secondary" placeholder="Tua palavra-passe">
+            <input type="password" id="loginPass" class="form-control bg-white text-dark border-secondary" placeholder="Tua palavra-passe">
           </div>
           <button class="btn btn-accent w-100 py-2 mb-3" onclick="handleLogin()">Entrar</button>
           <hr class="border-secondary">
-          <button class="btn btn-outline-light btn-sm w-100" onclick="renderSetupAccountView(document.getElementById('app-content'))">
+          <button class="btn btn-outline-dark btn-sm w-100" onclick="renderSetupAccountView(document.getElementById('app-content'))">
             Configurar Os Meus Dados / Criar Conta
           </button>
         </div>
@@ -236,19 +246,19 @@
 
     function renderSetupAccountView(container) {
       container.innerHTML = `
-        <div class="card-custom p-4">
-          <h4 class="text-center text-warning mb-3"><i class="fa-solid fa-user-gear me-2"></i>Configurar Dados</h4>
+        <div class="card-custom p-4 mt-3">
+          <h4 class="text-center fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-gear me-2 text-warning"></i>Configurar Dados</h4>
           <div class="mb-3">
             <label class="form-label small text-secondary">Nome Completo</label>
-            <input type="text" id="setupName" class="form-control bg-dark text-white border-secondary" value="${activeUser ? activeUser.name : ''}" placeholder="O teu nome">
+            <input type="text" id="setupName" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.name : ''}" placeholder="O teu nome">
           </div>
           <div class="mb-3">
             <label class="form-label small text-secondary">Telemóvel Real</label>
-            <input type="tel" id="setupPhone" class="form-control bg-dark text-white border-secondary" value="${activeUser ? activeUser.phone : ''}" placeholder="Ex: 912345678">
+            <input type="tel" id="setupPhone" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.phone : ''}" placeholder="Ex: 912345678">
           </div>
           <div class="mb-4">
             <label class="form-label small text-secondary">Palavra-passe</label>
-            <input type="password" id="setupPass" class="form-control bg-dark text-white border-secondary" placeholder="Escolhe uma palavra-passe">
+            <input type="password" id="setupPass" class="form-control bg-white text-dark border-secondary" placeholder="Escolhe uma palavra-passe">
           </div>
           <button class="btn btn-accent w-100 py-2 mb-2" onclick="saveUserData()">Guardar Dados</button>
           <button class="btn btn-link text-secondary w-100 btn-sm" onclick="initApp()">Voltar</button>
@@ -311,8 +321,9 @@
       const currentUser = members.find(m => m.id === activeUser.id);
       if (currentUser) activeUser = currentUser;
 
+      const maxSlots = appConfig.maxStamps || 6;
       let slotsHTML = '';
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < maxSlots; i++) {
         if (i < activeUser.stamps) {
           slotsHTML += `<div class="stamp-slot stamped"><i class="fa-solid fa-beer-mug-empty"></i></div>`;
         } else if (i < activeUser.stamps + activeUser.crosses) {
@@ -324,14 +335,19 @@
 
       const hasPending = stampRequests.some(r => r.memberId === activeUser.id);
 
+      let photoHTML = appConfig.bgUrl 
+        ? `<div class="hero-photo-container"><img src="${appConfig.bgUrl}" alt="Foto Grupo" class="hero-photo"></div>` 
+        : '';
+
       container.innerHTML = `
+        ${photoHTML}
         <div class="card-custom p-3 text-center">
           <div class="d-flex justify-content-between align-items-center mb-1">
-            <h5 class="m-0">${activeUser.name}</h5>
+            <h5 class="m-0 fw-bold">${activeUser.name}</h5>
             ${activeUser.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}
           </div>
           <p class="text-secondary small mb-2"><i class="fa-solid fa-phone me-1"></i>${activeUser.phone}</p>
-          <button class="btn btn-outline-warning btn-sm mb-3" onclick="renderSetupAccountView(document.getElementById('app-content'))">
+          <button class="btn btn-outline-dark btn-sm mb-3" onclick="renderSetupAccountView(document.getElementById('app-content'))">
             <i class="fa-solid fa-pen-to-square me-1"></i>Editar Meus Dados
           </button>
           
@@ -361,7 +377,7 @@
 
     function renderEventsTab(container) {
       if (events.length === 0) {
-        container.innerHTML = `<div class="card-custom p-4 text-center"><p class="text-secondary m-0">Nenhum jantar agendado de momento.</p></div>`;
+        container.innerHTML = `<div class="card-custom p-4 text-center mt-3"><p class="text-secondary m-0">Nenhum jantar agendado de momento.</p></div>`;
         return;
       }
 
@@ -380,7 +396,7 @@
 
         return `
           <div class="card-custom p-3 mb-3">
-            <h5 class="text-warning"><i class="fa-solid fa-utensils me-2"></i>${ev.title}</h5>
+            <h5 class="fw-bold" style="color: #111827;"><i class="fa-solid fa-utensils me-2 text-warning"></i>${ev.title}</h5>
             <p class="text-secondary mb-1"><i class="fa-regular fa-calendar me-2"></i>${ev.date}</p>
             <p class="text-secondary mb-3"><i class="fa-solid fa-location-dot me-2"></i>${ev.location}</p>
             
@@ -393,7 +409,7 @@
               </button>
             </div>
 
-            <div class="p-2 rounded bg-dark border border-secondary">
+            <div class="p-2 rounded bg-white border">
               <small class="text-success fw-bold">Confirmados (${goingList.length}):</small>
               <div class="small text-secondary mb-2">${goingList.join(', ') || 'Ninguém ainda.'}</div>
               <small class="text-danger fw-bold">Não Vão (${notGoingList.length}):</small>
@@ -418,7 +434,7 @@
     function renderRankingTab(container) {
       let sorted = [...members].sort((a,b) => b.stamps - a.stamps);
       let list = sorted.map((m, idx) => `
-        <div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background: rgba(0,0,0,0.8); border: 1px solid #333; border-radius: 8px;">
+        <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-white rounded border">
           <div>
             <strong>#${idx+1} ${m.name}</strong>
           </div>
@@ -430,8 +446,8 @@
       `).join('');
 
       container.innerHTML = `
-        <div class="card-custom p-3">
-          <h5 class="text-warning mb-3"><i class="fa-solid fa-trophy me-2"></i>Ranking Mestre</h5>
+        <div class="card-custom p-3 mt-2">
+          <h5 class="fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-trophy me-2 text-warning"></i>Ranking Mestre</h5>
           ${list}
         </div>
       `;
@@ -439,15 +455,14 @@
 
     function renderAdminTab(container) {
       if (!activeUser.isAdmin) {
-        container.innerHTML = `<div class="card-custom p-4 text-center"><p class="text-danger m-0">Apenas os Administradores têm acesso a este painel.</p></div>`;
+        container.innerHTML = `<div class="card-custom p-4 text-center mt-3"><p class="text-danger m-0">Apenas os Administradores têm acesso a este painel.</p></div>`;
         return;
       }
 
-      // Notificações / Pedidos Pendentes
       let requestsHTML = stampRequests.length === 0 
         ? `<p class="text-secondary small m-0">Nenhum pedido pendente.</p>`
         : stampRequests.map(req => `
-            <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-dark rounded border border-warning">
+            <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-white rounded border border-warning">
               <div>
                 <strong>${req.memberName}</strong><br>
                 <small class="text-secondary">${req.date}</small>
@@ -459,11 +474,10 @@
             </div>
           `).join('');
 
-      // Gestão de Jantares (Com opção de apagar)
       let eventsAdminHTML = events.length === 0 
         ? `<p class="text-secondary small">Nenhum jantar registado.</p>`
         : events.map(ev => `
-            <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-dark rounded border border-secondary">
+            <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-white rounded border">
               <div>
                 <strong>${ev.title}</strong> (${ev.date})
               </div>
@@ -471,9 +485,8 @@
             </div>
           `).join('');
 
-      // Gestão de Membros
       let memberList = members.map(m => `
-        <div class="p-2 mb-2 bg-dark rounded border border-secondary">
+        <div class="p-2 mb-2 bg-white rounded border">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
               <strong>${m.name}</strong> ${m.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}<br>
@@ -492,46 +505,65 @@
       `).join('');
 
       container.innerHTML = `
-        <div class="card-custom p-3">
-          <h5 class="text-warning mb-3"><i class="fa-solid fa-user-shield me-2"></i>Painel Admin</h5>
+        <div class="card-custom p-3 mt-2">
+          <h5 class="fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-shield me-2 text-warning"></i>Painel Admin</h5>
           
-          <h6 class="text-warning mt-2">🔔 Pedidos de Carimbo Pendentes:</h6>
+          <h6 class="fw-bold text-dark mt-2">🔔 Pedidos de Carimbo Pendentes:</h6>
           <div class="mb-3">
             ${requestsHTML}
           </div>
 
-          <hr class="border-secondary">
+          <hr>
 
-          <h6 class="text-secondary">🎨 Ajustar Foto de Fundo da Galeria:</h6>
+          <h6 class="fw-bold text-dark">🎯 Número de Espaços do Cartão:</h6>
+          <div class="d-flex gap-2 mb-3">
+            <input type="number" id="maxStampsInput" class="form-control form-control-sm bg-white text-dark border-secondary" value="${appConfig.maxStamps || 6}" min="1" max="20">
+            <button class="btn btn-sm btn-outline-dark" onclick="updateMaxStamps()">Atualizar Espaços</button>
+          </div>
+
+          <hr>
+
+          <h6 class="fw-bold text-dark">🖼️ Alterar Foto Centrada:</h6>
           <div class="mb-3">
-            <input type="file" id="bgFileInput" accept="image/*" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" onchange="uploadBgFromGallery(this)">
+            <input type="file" id="bgFileInput" accept="image/*" class="form-control form-control-sm bg-white text-dark border-secondary mb-2" onchange="uploadBgFromGallery(this)">
             ${appConfig.bgUrl ? '<button class="btn btn-sm btn-outline-danger w-100" onclick="removeBgImage()">Remover Foto Atual</button>' : ''}
           </div>
 
-          <hr class="border-secondary">
+          <hr>
 
-          <h6 class="text-secondary">📅 Gestão e Criação de Jantares:</h6>
+          <h6 class="fw-bold text-dark">📅 Gestão e Criação de Jantares:</h6>
           <div class="mb-3">
             ${eventsAdminHTML}
           </div>
           <div class="mb-2">
-            <input type="text" id="eventTitle" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" placeholder="Nome do Jantar">
-            <input type="date" id="eventDate" class="form-control form-control-sm bg-dark text-white border-secondary mb-1">
-            <input type="text" id="eventLocation" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" placeholder="Localização">
+            <input type="text" id="eventTitle" class="form-control form-control-sm bg-white text-dark border-secondary mb-1" placeholder="Nome do Jantar">
+            <input type="date" id="eventDate" class="form-control form-control-sm bg-white text-dark border-secondary mb-1">
+            <input type="text" id="eventLocation" class="form-control form-control-sm bg-white text-dark border-secondary mb-1" placeholder="Localização">
             <button class="btn btn-sm btn-accent w-100" onclick="addEvent()">Criar Novo Jantar</button>
           </div>
 
-          <hr class="border-secondary">
+          <hr>
 
-          <h6 class="text-secondary">👥 Gestão de Membros e Carimbos:</h6>
+          <h6 class="fw-bold text-dark">👥 Gestão de Membros e Carimbos:</h6>
           ${memberList}
         </div>
       `;
     }
 
+    function updateMaxStamps() {
+      const val = parseInt(document.getElementById('maxStampsInput').value);
+      if (val && val > 0) {
+        appConfig.maxStamps = val;
+        saveState();
+        alert(`O cartão passou a ter ${val} espaços!`);
+        renderAdminTab(document.getElementById('app-content'));
+      }
+    }
+
     function approveRequest(reqId, memberId) {
       const m = members.find(x => x.id === memberId);
-      if (m && m.stamps < 10) {
+      const maxSlots = appConfig.maxStamps || 6;
+      if (m && m.stamps < maxSlots) {
         m.stamps++;
       }
       stampRequests = stampRequests.filter(r => r.id !== reqId);
@@ -561,7 +593,7 @@
         reader.onload = function(e) {
           appConfig.bgUrl = e.target.result;
           saveState();
-          alert("Foto da galeria ajustada e aplicada!");
+          alert("Foto da galeria guardada e centrada!");
         };
         reader.readAsDataURL(input.files[0]);
       }
@@ -570,7 +602,7 @@
     function removeBgImage() {
       appConfig.bgUrl = '';
       saveState();
-      alert("Foto de fundo removida!");
+      alert("Foto removida!");
       renderAdminTab(document.getElementById('app-content'));
     }
 
@@ -599,8 +631,9 @@
 
     function updateStamps(id, delta) {
       const m = members.find(x => x.id === id);
+      const maxSlots = appConfig.maxStamps || 6;
       if (m) {
-        m.stamps = Math.max(0, Math.min(10, m.stamps + delta));
+        m.stamps = Math.max(0, Math.min(maxSlots, m.stamps + delta));
         saveState();
         renderAdminTab(document.getElementById('app-content'));
       }
@@ -608,8 +641,9 @@
 
     function updateCrosses(id, delta) {
       const m = members.find(x => x.id === id);
+      const maxSlots = appConfig.maxStamps || 6;
       if (m) {
-        m.crosses = Math.max(0, Math.min(10, m.crosses + delta));
+        m.crosses = Math.max(0, Math.min(maxSlots, m.crosses + delta));
         saveState();
         renderAdminTab(document.getElementById('app-content'));
       }
