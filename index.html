@@ -8,12 +8,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg-color: #0f0f12;
-      --card-bg: rgba(26, 26, 34, 0.92);
-      --accent-color: #f59e0b;
+      --bg-color: #000000;
+      --card-bg: rgba(18, 18, 20, 0.92);
+      --accent-color: #f59e0b; /* Amarelo Cerveja */
       --accent-hover: #d97706;
-      --text-color: #f3f4f6;
-      --text-secondary: #9ca3af;
+      --text-color: #ffffff;
+      --text-secondary: #a1a1aa;
       --danger-color: #ef4444;
       --success-color: #10b981;
     }
@@ -23,12 +23,12 @@
       background-position: center;
       background-attachment: fixed;
       color: var(--text-color);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       padding-bottom: 80px;
       min-height: 100vh;
     }
     .app-header {
-      background-color: rgba(26, 26, 34, 0.95);
+      background-color: rgba(10, 10, 12, 0.95);
       backdrop-filter: blur(10px);
       border-bottom: 2px solid var(--accent-color);
       padding: 15px;
@@ -38,19 +38,19 @@
       z-index: 100;
     }
     .app-title {
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 2px;
       color: var(--accent-color);
       margin: 0;
       text-transform: uppercase;
-      font-size: 1.4rem;
+      font-size: 1.5rem;
     }
     .card-custom {
       background: var(--card-bg);
       backdrop-filter: blur(12px);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.8);
       margin-bottom: 20px;
     }
     .stamp-grid {
@@ -61,8 +61,8 @@
     }
     .stamp-slot {
       aspect-ratio: 1;
-      background-color: rgba(18, 18, 22, 0.8);
-      border: 2px dashed #3a3a45;
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 2px dashed #444;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -74,17 +74,12 @@
     }
     .stamp-slot.stamped {
       border: 2px solid var(--accent-color);
-      background-color: rgba(245, 158, 11, 0.2);
+      background-color: rgba(245, 158, 11, 0.25);
       color: var(--accent-color);
-    }
-    .stamp-slot.stamped img {
-      width: 80%;
-      height: 80%;
-      object-fit: contain;
     }
     .stamp-slot.red-cross {
       border: 2px solid var(--danger-color);
-      background-color: rgba(239, 68, 68, 0.2);
+      background-color: rgba(239, 68, 68, 0.25);
       color: var(--danger-color);
     }
     .nav-bottom {
@@ -92,12 +87,12 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background-color: rgba(26, 26, 34, 0.98);
-      backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: rgba(10, 10, 12, 0.98);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
       display: flex;
       justify-content: space-around;
-      padding: 10px 0;
+      padding: 12px 0;
       z-index: 1000;
     }
     .nav-item-btn {
@@ -114,18 +109,18 @@
       font-weight: bold;
     }
     .nav-item-btn i {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       margin-bottom: 3px;
     }
     .btn-accent {
       background-color: var(--accent-color);
-      color: #000;
+      color: #000000;
       font-weight: 700;
       border: none;
     }
     .btn-accent:hover {
       background-color: var(--accent-hover);
-      color: #000;
+      color: #000000;
     }
     .badge-admin {
       background-color: var(--accent-color);
@@ -161,25 +156,16 @@
   </nav>
 
   <script>
-    // Configurações e Armazenamento Local
-    let appConfig = JSON.parse(localStorage.getItem('hojetem_config')) || {
-      bgUrl: '',
-      stampUrl: ''
-    };
-
+    let appConfig = JSON.parse(localStorage.getItem('hojetem_config')) || { bgUrl: '' };
     let activeUser = JSON.parse(localStorage.getItem('hojetem_user')) || null;
-
-    let members = JSON.parse(localStorage.getItem('hojetem_members')) || [
-      { id: 1, name: "Diogo Salgueiro", phone: "910000000", pass: "admin123", isAdmin: true, stamps: 0, crosses: 0 }
-    ];
-
+    let members = JSON.parse(localStorage.getItem('hojetem_members')) || [];
     let events = JSON.parse(localStorage.getItem('hojetem_events')) || [
       { id: 1, title: "Jantar do Grupo Holstein", date: "2026-11-15", location: "Torres Novas", rsvp: {} }
     ];
 
     function applyConfig() {
       if (appConfig.bgUrl) {
-        document.body.style.backgroundImage = `linear-gradient(rgba(15, 15, 18, 0.85), rgba(15, 15, 18, 0.95)), url('${appConfig.bgUrl}')`;
+        document.body.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.92)), url('${appConfig.bgUrl}')`;
       } else {
         document.body.style.backgroundImage = 'none';
       }
@@ -318,18 +304,13 @@
     }
 
     function renderCardTab(container) {
-      // Re-sincronizar dados do utilizador ativo
       const currentUser = members.find(m => m.id === activeUser.id);
       if (currentUser) activeUser = currentUser;
 
       let slotsHTML = '';
       for (let i = 0; i < 10; i++) {
         if (i < activeUser.stamps) {
-          if (appConfig.stampUrl) {
-            slotsHTML += `<div class="stamp-slot stamped"><img src="${appConfig.stampUrl}" alt="stamp"></div>`;
-          } else {
-            slotsHTML += `<div class="stamp-slot stamped"><i class="fa-solid fa-beer-mug-empty"></i></div>`;
-          }
+          slotsHTML += `<div class="stamp-slot stamped"><i class="fa-solid fa-beer-mug-empty"></i></div>`;
         } else if (i < activeUser.stamps + activeUser.crosses) {
           slotsHTML += `<div class="stamp-slot red-cross"><i class="fa-solid fa-xmark"></i></div>`;
         } else {
@@ -368,7 +349,6 @@
 
       let eventsHTML = events.map(ev => {
         const userStatus = ev.rsvp[activeUser.id];
-        
         let goingList = [];
         let notGoingList = [];
 
@@ -395,7 +375,7 @@
               </button>
             </div>
 
-            <div class="p-2 rounded bg-dark">
+            <div class="p-2 rounded bg-dark border border-secondary">
               <small class="text-success fw-bold">Confirmados (${goingList.length}):</small>
               <div class="small text-secondary mb-2">${goingList.join(', ') || 'Ninguém ainda.'}</div>
               <small class="text-danger fw-bold">Não Vão (${notGoingList.length}):</small>
@@ -420,7 +400,7 @@
     function renderRankingTab(container) {
       let sorted = [...members].sort((a,b) => b.stamps - a.stamps);
       let list = sorted.map((m, idx) => `
-        <div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background: rgba(20,20,25,0.7); border-radius: 8px;">
+        <div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background: rgba(0,0,0,0.8); border: 1px solid #333; border-radius: 8px;">
           <div>
             <strong>#${idx+1} ${m.name}</strong>
           </div>
@@ -446,7 +426,7 @@
       }
 
       let memberList = members.map(m => `
-        <div class="p-2 mb-2 bg-dark rounded">
+        <div class="p-2 mb-2 bg-dark rounded border border-secondary">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
               <strong>${m.name}</strong> ${m.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}<br>
@@ -468,14 +448,10 @@
         <div class="card-custom p-3">
           <h5 class="text-warning mb-3"><i class="fa-solid fa-user-shield me-2"></i>Painel Admin</h5>
           
-          <h6 class="text-secondary mt-3">🎨 Personalizar Visual:</h6>
-          <div class="mb-2">
-            <input type="url" id="bgUrlInput" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" placeholder="Link (URL) da Imagem de Fundo" value="${appConfig.bgUrl}">
-            <button class="btn btn-sm btn-outline-warning w-100" onclick="saveBgImage()">Salvar Imagem de Fundo</button>
-          </div>
+          <h6 class="text-secondary mt-3">🎨 Carregar Foto de Fundo da Galeria:</h6>
           <div class="mb-3">
-            <input type="url" id="stampUrlInput" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" placeholder="Link (URL) do Logótipo do Carimbo" value="${appConfig.stampUrl}">
-            <button class="btn btn-sm btn-outline-warning w-100" onclick="saveStampImage()">Salvar Imagem do Carimbo</button>
+            <input type="file" id="bgFileInput" accept="image/*" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" onchange="uploadBgFromGallery(this)">
+            ${appConfig.bgUrl ? '<button class="btn btn-sm btn-outline-danger w-100" onclick="removeBgImage()">Remover Foto Atual</button>' : ''}
           </div>
 
           <hr class="border-secondary">
@@ -496,16 +472,23 @@
       `;
     }
 
-    function saveBgImage() {
-      appConfig.bgUrl = document.getElementById('bgUrlInput').value.trim();
-      saveState();
-      alert("Imagem de fundo atualizada!");
+    function uploadBgFromGallery(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          appConfig.bgUrl = e.target.result;
+          saveState();
+          alert("Foto da galeria aplicada no fundo da app!");
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
     }
 
-    function saveStampImage() {
-      appConfig.stampUrl = document.getElementById('stampUrlInput').value.trim();
+    function removeBgImage() {
+      appConfig.bgUrl = '';
       saveState();
-      alert("Imagem do carimbo atualizada!");
+      alert("Foto de fundo removida!");
+      renderAdminTab(document.getElementById('app-content'));
     }
 
     function addEvent() {
@@ -551,7 +534,7 @@
 
     function resetMember(id) {
       const m = members.find(x => x.id === id);
-      if (m && confirm(`Zerar carimbos e cruzes de ${m.name}?`)) {
+      if (m && confirm(`Zerar carimbos de ${m.name}?`)) {
         m.stamps = 0;
         m.crosses = 0;
         saveState();
@@ -561,14 +544,13 @@
 
     function removeMember(id) {
       const m = members.find(x => x.id === id);
-      if (m && confirm(`Tens a certeza que queres remover ${m.name} da aplicação?`)) {
+      if (m && confirm(`Remover ${m.name}?`)) {
         members = members.filter(x => x.id !== id);
         saveState();
         renderAdminTab(document.getElementById('app-content'));
       }
     }
 
-    // Inicialização da App
     initApp();
   </script>
 </body>
