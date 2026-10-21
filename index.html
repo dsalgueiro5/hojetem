@@ -150,7 +150,9 @@
     </div>
   </header>
 
-  <div class="container mt-2" id="app-content"></div>
+  <div class="container mt-2" id="app-content">
+    <div class="text-center mt-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-warning"></i><p class="mt-2 text-secondary">A ligar ao servidor...</p></div>
+  </div>
 
   <nav class="nav-bottom" id="app-nav" style="display: none;">
     <button class="nav-item-btn active" onclick="switchTab('card')">
@@ -167,50 +169,86 @@
     </button>
   </nav>
 
-  <script>
-    let appConfig = JSON.parse(localStorage.getItem('hojetem_config')) || { 
-      bgUrl: '',
-      maxStamps: 6 
+  <!-- Módulos Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0JWbkncyghGt3xVHehckioCtunwucqR4",
+      authDomain: "hojetem-ba6cd.firebaseapp.com",
+      databaseURL: "https://hojetem-ba6cd-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hojetem-ba6cd",
+      storageBucket: "hojetem-ba6cd.firebasestorage.app",
+      messagingSenderId: "1065870145474",
+      appId: "1:1065870145474:web:6ec9653fa21c2b38a3485b",
+      measurementId: "G-JMLH2V4X5E"
     };
-    let activeUser = JSON.parse(localStorage.getItem('hojetem_user')) || null;
-    let members = JSON.parse(localStorage.getItem('hojetem_members')) || [
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Variáveis de Estado
+    window.appConfig = { bgUrl: '', maxStamps: 6 };
+    window.activeUser = JSON.parse(localStorage.getItem('hojetem_user')) || null;
+    window.members = [
       { id: 1, name: "Diogo Salgueiro", phone: "910000000", pass: "admin123", isAdmin: true, stamps: 0, crosses: 0 }
     ];
-    let events = JSON.parse(localStorage.getItem('hojetem_events')) || [];
-    let stampRequests = JSON.parse(localStorage.getItem('hojetem_requests')) || [];
-    let registrationRequests = JSON.parse(localStorage.getItem('hojetem_reg_requests')) || [];
+    window.events = [];
+    window.stampRequests = [];
+    window.registrationRequests = [];
+    window.currentTab = 'card';
 
-    function saveState() {
-      localStorage.setItem('hojetem_members', JSON.stringify(members));
-      localStorage.setItem('hojetem_events', JSON.stringify(events));
-      localStorage.setItem('hojetem_requests', JSON.stringify(stampRequests));
-      localStorage.setItem('hojetem_reg_requests', JSON.stringify(registrationRequests));
-      localStorage.setItem('hojetem_config', JSON.stringify(appConfig));
-      if (activeUser) {
-        localStorage.setItem('hojetem_user', JSON.stringify(activeUser));
+    // Guardar Dados na Nuvem
+    window.saveState = function() {
+      set(ref(db, 'hojetem_data'), {
+        members: window.members,
+        events: window.events,
+        stampRequests: window.stampRequests,
+        registrationRequests: window.registrationRequests,
+        config: window.appConfig
+      });
+      if (window.activeUser) {
+        localStorage.setItem('hojetem_user', JSON.stringify(window.activeUser));
       }
-    }
+    };
 
-    function initApp() {
+    // Sincronizar em Tempo Real da Nuvem
+    onValue(ref(db, 'hojetem_data'), (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        if (data.members) window.members = data.members;
+        if (data.events) window.events = data.events;
+        if (data.stampRequests) window.stampRequests = data.stampRequests;
+        if (data.registrationRequests) window.registrationRequests = data.registrationRequests;
+        if (data.config) window.appConfig = data.config;
+
+        if (window.activeUser) {
+          const freshUser = window.members.find(m => m.id === window.activeUser.id);
+          if (freshUser) window.activeUser = freshUser;
+        }
+      } else {
+        window.saveState();
+      }
+      window.initApp();
+    });
+
+    window.initApp = function() {
       const content = document.getElementById('app-content');
       const nav = document.getElementById('app-nav');
       const adminBtn = document.getElementById('admin-nav-btn');
 
-      if (!activeUser) {
+      if (!window.activeUser) {
         nav.style.display = 'none';
-        renderLoginView(content);
+        window.renderLoginView(content);
       } else {
         nav.style.display = 'flex';
-        if (activeUser.isAdmin) {
-          adminBtn.style.display = 'flex';
-        } else {
-          adminBtn.style.display = 'none';
-        }
-        renderCardTab(content);
+        adminBtn.style.display = window.activeUser.isAdmin ? 'flex' : 'none';
+        window.switchTab(window.currentTab);
       }
-    }
+    };
 
-    function renderLoginView(container) {
+    window.renderLoginView = function(container) {
       container.innerHTML = `
         <div class="card-custom p-4 mt-3">
           <h4 class="text-center fw-bold mb-4" style="color: #111827;"><i class="fa-solid fa-right-to-bracket me-2 text-warning"></i>Entrar no Hoje Tem</h4>
@@ -229,46 +267,46 @@
           </button>
         </div>
       `;
-    }
+    };
 
-    function handleLogin() {
+    window.handleLogin = function() {
       const phone = document.getElementById('loginPhone').value.trim();
       const pass = document.getElementById('loginPass').value.trim();
 
-      const user = members.find(m => m.phone === phone && m.pass === pass);
+      const user = window.members.find(m => m.phone === phone && m.pass === pass);
       if (user) {
-        activeUser = user;
-        saveState();
-        initApp();
+        window.activeUser = user;
+        localStorage.setItem('hojetem_user', JSON.stringify(user));
+        window.initApp();
       } else {
-        alert("Telemóvel ou palavra-passe incorretos, ou conta ainda não aprovada pelo Administrador!");
+        alert("Telemóvel ou palavra-passe incorretos, ou conta ainda não aprovada!");
       }
-    }
+    };
 
-    function renderSetupAccountView(container, isEditing = false) {
+    window.renderSetupAccountView = function(container, isEditing = false) {
       container.innerHTML = `
         <div class="card-custom p-4 mt-3">
           <h4 class="text-center fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-gear me-2 text-warning"></i>${isEditing ? 'Editar Meus Dados' : 'Criar Conta'}</h4>
-          <p class="small text-secondary text-center">${isEditing ? 'Atualiza os teus dados pessoais.' : 'Preenche os teus dados para enviar o pedido de acesso ao Administrador.'}</p>
+          <p class="small text-secondary text-center">${isEditing ? 'Atualiza os teus dados pessoais.' : 'Preenche os dados para enviar o pedido de acesso ao Administrador.'}</p>
           <div class="mb-3">
             <label class="form-label small text-secondary">Telemóvel</label>
-            <input type="tel" id="setupPhone" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.phone : ''}" placeholder="Ex: 912345678">
+            <input type="tel" id="setupPhone" class="form-control bg-white text-dark border-secondary" value="${window.activeUser ? window.activeUser.phone : ''}" placeholder="Ex: 912345678">
           </div>
           <div class="mb-3">
             <label class="form-label small text-secondary">O Teu Nome Completo</label>
-            <input type="text" id="setupName" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.name : ''}" placeholder="Ex: Diogo Salgueiro">
+            <input type="text" id="setupName" class="form-control bg-white text-dark border-secondary" value="${window.activeUser ? window.activeUser.name : ''}" placeholder="Ex: Diogo Salgueiro">
           </div>
           <div class="mb-4">
             <label class="form-label small text-secondary">Palavra-passe</label>
-            <input type="password" id="setupPass" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.pass : ''}" placeholder="Tua palavra-passe">
+            <input type="password" id="setupPass" class="form-control bg-white text-dark border-secondary" value="${window.activeUser ? window.activeUser.pass : ''}" placeholder="Tua palavra-passe">
           </div>
           <button class="btn btn-accent w-100 py-2 mb-2" onclick="saveUserData(${isEditing})">${isEditing ? 'Guardar Alterações' : 'Enviar Pedido de Registo'}</button>
           <button class="btn btn-link text-secondary w-100 btn-sm" onclick="initApp()">Voltar</button>
         </div>
       `;
-    }
+    };
 
-    function saveUserData(isEditing) {
+    window.saveUserData = function(isEditing) {
       const name = document.getElementById('setupName').value.trim();
       const phone = document.getElementById('setupPhone').value.trim();
       const pass = document.getElementById('setupPass').value.trim();
@@ -278,31 +316,29 @@
         return;
       }
 
-      if (isEditing && activeUser) {
-        activeUser.name = name;
-        activeUser.phone = phone;
-        activeUser.pass = pass;
-        const idx = members.findIndex(m => m.id === activeUser.id);
-        if (idx !== -1) members[idx] = activeUser;
-        saveState();
+      if (isEditing && window.activeUser) {
+        window.activeUser.name = name;
+        window.activeUser.phone = phone;
+        window.activeUser.pass = pass;
+        const idx = window.members.findIndex(m => m.id === window.activeUser.id);
+        if (idx !== -1) window.members[idx] = window.activeUser;
+        window.saveState();
         alert("Dados atualizados com sucesso!");
-        initApp();
+        window.initApp();
       } else {
-        // Verificar se já existe como membro
-        if (members.some(m => m.phone === phone)) {
+        if (window.members.some(m => m.phone === phone)) {
           alert("Este número já está registado. Podes fazer login diretamente!");
-          initApp();
+          window.initApp();
           return;
         }
 
-        // Verificar se já há um pedido pendente para este telemóvel
-        if (registrationRequests.some(r => r.phone === phone)) {
-          alert("Já existe um pedido pendente com este número. Aguarda que o Administrador aprove!");
-          initApp();
+        if (window.registrationRequests.some(r => r.phone === phone)) {
+          alert("Já existe um pedido pendente com este número. Aguarda aprovação!");
+          window.initApp();
           return;
         }
 
-        registrationRequests.push({
+        window.registrationRequests.push({
           id: Date.now(),
           name: name,
           phone: phone,
@@ -310,59 +346,56 @@
           date: new Date().toLocaleDateString('pt-PT')
         });
 
-        saveState();
-        alert("Pedido de criação de conta enviado com sucesso! O Administrador já o pode aceitar.");
-        initApp();
+        window.saveState();
+        alert("Pedido enviado! O Administrador já o pode aceitar.");
+        window.initApp();
       }
-    }
+    };
 
-    function logout() {
-      activeUser = null;
+    window.logout = function() {
+      window.activeUser = null;
       localStorage.removeItem('hojetem_user');
-      initApp();
-    }
+      window.initApp();
+    };
 
-    function switchTab(tab) {
+    window.switchTab = function(tab) {
+      window.currentTab = tab;
       document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
-      if(event && event.currentTarget) event.currentTarget.classList.add('active');
       const content = document.getElementById('app-content');
 
-      if (tab === 'card') renderCardTab(content);
-      else if (tab === 'events') renderEventsTab(content);
-      else if (tab === 'ranking') renderRankingTab(content);
-      else if (tab === 'admin') renderAdminTab(content);
-    }
+      if (tab === 'card') window.renderCardTab(content);
+      else if (tab === 'events') window.renderEventsTab(content);
+      else if (tab === 'ranking') window.renderRankingTab(content);
+      else if (tab === 'admin') window.renderAdminTab(content);
+    };
 
-    function renderCardTab(container) {
-      const currentUser = members.find(m => m.id === activeUser.id);
-      if (currentUser) activeUser = currentUser;
-
-      const maxSlots = appConfig.maxStamps || 6;
+    window.renderCardTab = function(container) {
+      const maxSlots = window.appConfig.maxStamps || 6;
       let slotsHTML = '';
       for (let i = 0; i < maxSlots; i++) {
-        if (i < activeUser.stamps) {
+        if (i < window.activeUser.stamps) {
           slotsHTML += `<div class="stamp-slot stamped"><i class="fa-solid fa-beer-mug-empty"></i></div>`;
-        } else if (i < activeUser.stamps + activeUser.crosses) {
+        } else if (i < window.activeUser.stamps + window.activeUser.crosses) {
           slotsHTML += `<div class="stamp-slot red-cross"><i class="fa-solid fa-xmark"></i></div>`;
         } else {
           slotsHTML += `<div class="stamp-slot">${i+1}</div>`;
         }
       }
 
-      const hasPending = stampRequests.some(r => r.memberId === activeUser.id);
+      const hasPending = window.stampRequests.some(r => r.memberId === window.activeUser.id);
 
-      let photoHTML = appConfig.bgUrl 
-        ? `<div class="hero-photo-container"><img src="${appConfig.bgUrl}" alt="Foto Grupo" class="hero-photo"></div>` 
+      let photoHTML = window.appConfig.bgUrl 
+        ? `<div class="hero-photo-container"><img src="${window.appConfig.bgUrl}" alt="Foto Grupo" class="hero-photo"></div>` 
         : '';
 
       container.innerHTML = `
         ${photoHTML}
         <div class="card-custom p-3 text-center">
           <div class="d-flex justify-content-between align-items-center mb-1">
-            <h5 class="m-0 fw-bold">${activeUser.name}</h5>
-            ${activeUser.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}
+            <h5 class="m-0 fw-bold">${window.activeUser.name}</h5>
+            ${window.activeUser.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}
           </div>
-          <p class="text-secondary small mb-3"><i class="fa-solid fa-phone me-1"></i>${activeUser.phone}</p>
+          <p class="text-secondary small mb-3"><i class="fa-solid fa-phone me-1"></i>${window.activeUser.phone}</p>
           
           <div class="stamp-grid">
             ${slotsHTML}
@@ -382,38 +415,39 @@
           </div>
         </div>
       `;
-    }
+    };
 
-    function requestStamp() {
-      stampRequests.push({
+    window.requestStamp = function() {
+      window.stampRequests.push({
         id: Date.now(),
-        memberId: activeUser.id,
-        memberName: activeUser.name,
+        memberId: window.activeUser.id,
+        memberName: window.activeUser.name,
         date: new Date().toLocaleDateString('pt-PT')
       });
-      saveState();
-      alert("Pedido de carimbo enviado para o Administrador!");
-      renderCardTab(document.getElementById('app-content'));
-    }
+      window.saveState();
+      alert("Pedido de carimbo enviado!");
+    };
 
-    function renderEventsTab(container) {
-      if (events.length === 0) {
+    window.renderEventsTab = function(container) {
+      if (window.events.length === 0) {
         container.innerHTML = `<div class="card-custom p-4 text-center mt-3"><p class="text-secondary m-0">Nenhum jantar agendado de momento.</p></div>`;
         return;
       }
 
-      let eventsHTML = events.map(ev => {
-        const userStatus = ev.rsvp[activeUser.id];
+      let eventsHTML = window.events.map(ev => {
+        const userStatus = ev.rsvp ? ev.rsvp[window.activeUser.id] : null;
         let goingList = [];
         let notGoingList = [];
 
-        Object.keys(ev.rsvp).forEach(memberId => {
-          const m = members.find(x => x.id == memberId);
-          if (m) {
-            if (ev.rsvp[memberId] === 'yes') goingList.push(m.name);
-            if (ev.rsvp[memberId] === 'no') notGoingList.push(m.name);
-          }
-        });
+        if (ev.rsvp) {
+          Object.keys(ev.rsvp).forEach(memberId => {
+            const m = window.members.find(x => x.id == memberId);
+            if (m) {
+              if (ev.rsvp[memberId] === 'yes') goingList.push(m.name);
+              if (ev.rsvp[memberId] === 'no') notGoingList.push(m.name);
+            }
+          });
+        }
 
         return `
           <div class="card-custom p-3 mb-3">
@@ -441,19 +475,19 @@
       }).join('');
 
       container.innerHTML = eventsHTML;
-    }
+    };
 
-    function setRSVP(eventId, choice) {
-      const ev = events.find(e => e.id === eventId);
+    window.setRSVP = function(eventId, choice) {
+      const ev = window.events.find(e => e.id === eventId);
       if (ev) {
-        ev.rsvp[activeUser.id] = choice;
-        saveState();
-        renderEventsTab(document.getElementById('app-content'));
+        if (!ev.rsvp) ev.rsvp = {};
+        ev.rsvp[window.activeUser.id] = choice;
+        window.saveState();
       }
-    }
+    };
 
-    function renderRankingTab(container) {
-      let sorted = [...members].sort((a,b) => b.stamps - a.stamps);
+    window.renderRankingTab = function(container) {
+      let sorted = [...window.members].sort((a,b) => b.stamps - a.stamps);
       let list = sorted.map((m, idx) => `
         <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-white rounded border">
           <div>
@@ -472,18 +506,17 @@
           ${list}
         </div>
       `;
-    }
+    };
 
-    function renderAdminTab(container) {
-      if (!activeUser || !activeUser.isAdmin) {
+    window.renderAdminTab = function(container) {
+      if (!window.activeUser || !window.activeUser.isAdmin) {
         container.innerHTML = `<div class="card-custom p-4 text-center mt-3"><p class="text-danger m-0">Apenas os Administradores têm acesso a este painel.</p></div>`;
         return;
       }
 
-      // Pedidos de Registo Pendentes
-      let regRequestsHTML = registrationRequests.length === 0 
+      let regRequestsHTML = window.registrationRequests.length === 0 
         ? `<p class="text-secondary small m-0">Nenhum pedido de registo pendente.</p>`
-        : registrationRequests.map(req => `
+        : window.registrationRequests.map(req => `
             <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-white rounded border border-success">
               <div>
                 <strong>${req.name}</strong> (${req.phone})<br>
@@ -496,10 +529,9 @@
             </div>
           `).join('');
 
-      // Pedidos de Carimbo Pendentes
-      let requestsHTML = stampRequests.length === 0 
+      let requestsHTML = window.stampRequests.length === 0 
         ? `<p class="text-secondary small m-0">Nenhum pedido pendente.</p>`
-        : stampRequests.map(req => `
+        : window.stampRequests.map(req => `
             <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-white rounded border border-warning">
               <div>
                 <strong>${req.memberName}</strong><br>
@@ -512,9 +544,9 @@
             </div>
           `).join('');
 
-      let eventsAdminHTML = events.length === 0 
+      let eventsAdminHTML = window.events.length === 0 
         ? `<p class="text-secondary small">Nenhum jantar registado.</p>`
-        : events.map(ev => `
+        : window.events.map(ev => `
             <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-white rounded border">
               <div>
                 <strong>${ev.title}</strong> (${ev.date})
@@ -523,14 +555,14 @@
             </div>
           `).join('');
 
-      let memberList = members.map(m => `
+      let memberList = window.members.map(m => `
         <div class="p-2 mb-2 bg-white rounded border">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
               <strong>${m.name}</strong> ${m.isAdmin ? '<span class="badge-admin">ADMIN</span>' : ''}<br>
               <small class="text-secondary">${m.phone}</small>
             </div>
-            ${m.id !== activeUser.id ? `<button class="btn btn-sm btn-outline-danger" onclick="removeMember(${m.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
+            ${m.id !== window.activeUser.id ? `<button class="btn btn-sm btn-outline-danger" onclick="removeMember(${m.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
           </div>
           <div class="d-flex gap-1">
             <button class="btn btn-sm btn-warning flex-grow-1" onclick="updateStamps(${m.id}, 1)">+ 🍺 (${m.stamps})</button>
@@ -562,7 +594,7 @@
 
           <h6 class="fw-bold text-dark">🎯 Número de Espaços do Cartão:</h6>
           <div class="d-flex gap-2 mb-3">
-            <input type="number" id="maxStampsInput" class="form-control form-control-sm bg-white text-dark border-secondary" value="${appConfig.maxStamps || 6}" min="1" max="20">
+            <input type="number" id="maxStampsInput" class="form-control form-control-sm bg-white text-dark border-secondary" value="${window.appConfig.maxStamps || 6}" min="1" max="20">
             <button class="btn btn-sm btn-outline-dark" onclick="updateMaxStamps()">Atualizar Espaços</button>
           </div>
 
@@ -571,7 +603,7 @@
           <h6 class="fw-bold text-dark">🖼️ Alterar Foto Centrada:</h6>
           <div class="mb-3">
             <input type="file" id="bgFileInput" accept="image/*" class="form-control form-control-sm bg-white text-dark border-secondary mb-2" onchange="uploadBgFromGallery(this)">
-            ${appConfig.bgUrl ? '<button class="btn btn-sm btn-outline-danger w-100" onclick="removeBgImage()">Remover Foto Atual</button>' : ''}
+            ${window.appConfig.bgUrl ? '<button class="btn btn-sm btn-outline-danger w-100" onclick="removeBgImage()">Remover Foto Atual</button>' : ''}
           </div>
 
           <hr>
@@ -593,12 +625,12 @@
           ${memberList}
         </div>
       `;
-    }
+    };
 
-    function approveRegRequest(reqId) {
-      const req = registrationRequests.find(r => r.id === reqId);
+    window.approveRegRequest = function(reqId) {
+      const req = window.registrationRequests.find(r => r.id === reqId);
       if (req) {
-        members.push({
+        window.members.push({
           id: Date.now(),
           name: req.name,
           phone: req.phone,
@@ -607,77 +639,70 @@
           stamps: 0,
           crosses: 0
         });
-        registrationRequests = registrationRequests.filter(r => r.id !== reqId);
-        saveState();
-        alert(`Conta de ${req.name} aprovada com sucesso! Ele já pode entrar na app.`);
-        renderAdminTab(document.getElementById('app-content'));
+        window.registrationRequests = window.registrationRequests.filter(r => r.id !== reqId);
+        window.saveState();
+        alert(`Conta de ${req.name} aprovada! Ele já pode entrar.`);
       }
-    }
+    };
 
-    function rejectRegRequest(reqId) {
-      registrationRequests = registrationRequests.filter(r => r.id !== reqId);
-      saveState();
-      alert("Pedido de registo recusado.");
-      renderAdminTab(document.getElementById('app-content'));
-    }
+    window.rejectRegRequest = function(reqId) {
+      window.registrationRequests = window.registrationRequests.filter(r => r.id !== reqId);
+      window.saveState();
+      alert("Pedido recusado.");
+    };
 
-    function updateMaxStamps() {
+    window.updateMaxStamps = function() {
       const val = parseInt(document.getElementById('maxStampsInput').value);
       if (val && val > 0) {
-        appConfig.maxStamps = val;
-        saveState();
+        window.appConfig.maxStamps = val;
+        window.saveState();
         alert(`O cartão passou a ter ${val} espaços!`);
-        renderAdminTab(document.getElementById('app-content'));
       }
-    }
+    };
 
-    function approveRequest(reqId, memberId) {
-      const m = members.find(x => x.id === memberId);
-      const maxSlots = appConfig.maxStamps || 6;
+    window.approveRequest = function(reqId, memberId) {
+      const m = window.members.find(x => x.id === memberId);
+      const maxSlots = window.appConfig.maxStamps || 6;
       if (m && m.stamps < maxSlots) {
         m.stamps++;
       }
-      stampRequests = stampRequests.filter(r => r.id !== reqId);
-      saveState();
+      window.stampRequests = window.stampRequests.filter(r => r.id !== reqId);
+      window.saveState();
       alert("Carimbo aprovado e atribuído!");
-      renderAdminTab(document.getElementById('app-content'));
-    }
+    };
 
-    function rejectRequest(reqId) {
-      stampRequests = stampRequests.filter(r => r.id !== reqId);
-      saveState();
+    window.rejectRequest = function(reqId) {
+      window.stampRequests = window.stampRequests.filter(r => r.id !== reqId);
+      window.saveState();
       alert("Pedido recusado.");
-      renderAdminTab(document.getElementById('app-content'));
-    }
+    };
 
-    function deleteEvent(eventId) {
+    window.deleteEvent = function(eventId) {
       if (confirm("Tens a certeza que queres eliminar este jantar?")) {
-        events = events.filter(e => e.id !== eventId);
-        saveState();
-        renderAdminTab(document.getElementById('app-content'));
+        window.events = window.events.filter(e => e.id !== eventId);
+        window.saveState();
       }
-    }
+    };
 
-    function uploadBgFromGallery(input) {
+    window.uploadBgFromGallery = function(input) {
       if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-          appConfig.bgUrl = e.target.result;
-          saveState();
-          alert("Foto da galeria guardada e centrada!");
+          window.appConfig.bgUrl = e.target.result;
+          window.saveState();
+          alert("Foto guardada com sucesso!");
         };
         reader.readAsDataURL(input.files[0]);
       }
-    }
+    };
 
-    function removeBgImage() {
-      appConfig.bgUrl = '';
-      saveState();
+    window.removeBgImage = function() {
+      window.appConfig.bgUrl = '';
+      window.saveState();
       alert("Foto removida!");
-      renderAdminTab(document.getElementById('app-content'));
-    }
+    };
 
-    function addEvent() {
+    window.addEvent = function() {
       const title = document.getElementById('eventTitle').value.trim();
       const date = document.getElementById('eventDate').value;
       const location = document.getElementById('eventLocation').value.trim();
@@ -687,7 +712,7 @@
         return;
       }
 
-      events.push({
+      window.events.push({
         id: Date.now(),
         title: title,
         date: date,
@@ -695,51 +720,44 @@
         rsvp: {}
       });
 
-      saveState();
+      window.saveState();
       alert("Jantar criado com sucesso!");
-      renderAdminTab(document.getElementById('app-content'));
-    }
+    };
 
-    function updateStamps(id, delta) {
-      const m = members.find(x => x.id === id);
-      const maxSlots = appConfig.maxStamps || 6;
+    window.updateStamps = function(id, delta) {
+      const m = window.members.find(x => x.id === id);
+      const maxSlots = window.appConfig.maxStamps || 6;
       if (m) {
         m.stamps = Math.max(0, Math.min(maxSlots, m.stamps + delta));
-        saveState();
-        renderAdminTab(document.getElementById('app-content'));
+        window.saveState();
       }
-    }
+    };
 
-    function updateCrosses(id, delta) {
-      const m = members.find(x => x.id === id);
-      const maxSlots = appConfig.maxStamps || 6;
+    window.updateCrosses = function(id, delta) {
+      const m = window.members.find(x => x.id === id);
+      const maxSlots = window.appConfig.maxStamps || 6;
       if (m) {
         m.crosses = Math.max(0, Math.min(maxSlots, m.crosses + delta));
-        saveState();
-        renderAdminTab(document.getElementById('app-content'));
+        window.saveState();
       }
-    }
+    };
 
-    function resetMember(id) {
-      const m = members.find(x => x.id === id);
+    window.resetMember = function(id) {
+      const m = window.members.find(x => x.id === id);
       if (m && confirm(`Zerar carimbos de ${m.name}?`)) {
         m.stamps = 0;
         m.crosses = 0;
-        saveState();
-        renderAdminTab(document.getElementById('app-content'));
+        window.saveState();
       }
-    }
+    };
 
-    function removeMember(id) {
-      const m = members.find(x => x.id === id);
+    window.removeMember = function(id) {
+      const m = window.members.find(x => x.id === id);
       if (m && confirm(`Remover ${m.name}?`)) {
-        members = members.filter(x => x.id !== id);
-        saveState();
-        renderAdminTab(document.getElementById('app-content'));
+        window.members = window.members.filter(x => x.id !== id);
+        window.saveState();
       }
-    }
-
-    initApp();
+    };
   </script>
 </body>
 </html>
