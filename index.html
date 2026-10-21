@@ -178,11 +178,13 @@
     ];
     let events = JSON.parse(localStorage.getItem('hojetem_events')) || [];
     let stampRequests = JSON.parse(localStorage.getItem('hojetem_requests')) || [];
+    let registrationRequests = JSON.parse(localStorage.getItem('hojetem_reg_requests')) || [];
 
     function saveState() {
       localStorage.setItem('hojetem_members', JSON.stringify(members));
       localStorage.setItem('hojetem_events', JSON.stringify(events));
       localStorage.setItem('hojetem_requests', JSON.stringify(stampRequests));
+      localStorage.setItem('hojetem_reg_requests', JSON.stringify(registrationRequests));
       localStorage.setItem('hojetem_config', JSON.stringify(appConfig));
       if (activeUser) {
         localStorage.setItem('hojetem_user', JSON.stringify(activeUser));
@@ -223,7 +225,7 @@
           <button class="btn btn-accent w-100 py-2 mb-3" onclick="handleLogin()">Entrar</button>
           <hr class="border-secondary">
           <button class="btn btn-outline-dark btn-sm w-100" onclick="renderSetupAccountView(document.getElementById('app-content'))">
-            Primeiro Acesso / Ativar Conta
+            Criar Conta / Pedir Acesso
           </button>
         </div>
       `;
@@ -239,15 +241,15 @@
         saveState();
         initApp();
       } else {
-        alert("Telemóvel ou palavra-passe incorretos!");
+        alert("Telemóvel ou palavra-passe incorretos, ou conta ainda não aprovada pelo Administrador!");
       }
     }
 
     function renderSetupAccountView(container, isEditing = false) {
       container.innerHTML = `
         <div class="card-custom p-4 mt-3">
-          <h4 class="text-center fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-gear me-2 text-warning"></i>${isEditing ? 'Editar Meus Dados' : 'Ativar Conta'}</h4>
-          <p class="small text-secondary text-center">${isEditing ? 'Atualiza os teus dados pessoais.' : 'Introduz o teu telemóvel autorizado pelo Admin para criar a tua palavra-passe.'}</p>
+          <h4 class="text-center fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-gear me-2 text-warning"></i>${isEditing ? 'Editar Meus Dados' : 'Criar Conta'}</h4>
+          <p class="small text-secondary text-center">${isEditing ? 'Atualiza os teus dados pessoais.' : 'Preenche os teus dados para enviar o pedido de acesso ao Administrador.'}</p>
           <div class="mb-3">
             <label class="form-label small text-secondary">Telemóvel</label>
             <input type="tel" id="setupPhone" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.phone : ''}" placeholder="Ex: 912345678">
@@ -260,7 +262,7 @@
             <label class="form-label small text-secondary">Palavra-passe</label>
             <input type="password" id="setupPass" class="form-control bg-white text-dark border-secondary" value="${activeUser ? activeUser.pass : ''}" placeholder="Tua palavra-passe">
           </div>
-          <button class="btn btn-accent w-100 py-2 mb-2" onclick="saveUserData(${isEditing})">${isEditing ? 'Guardar Alterações' : 'Ativar Conta'}</button>
+          <button class="btn btn-accent w-100 py-2 mb-2" onclick="saveUserData(${isEditing})">${isEditing ? 'Guardar Alterações' : 'Enviar Pedido de Registo'}</button>
           <button class="btn btn-link text-secondary w-100 btn-sm" onclick="initApp()">Voltar</button>
         </div>
       `;
@@ -286,17 +288,31 @@
         alert("Dados atualizados com sucesso!");
         initApp();
       } else {
-        const existingMember = members.find(m => m.phone === phone);
-        if (existingMember) {
-          existingMember.name = name;
-          existingMember.pass = pass;
-          activeUser = existingMember;
-          saveState();
-          alert("Conta ativada com sucesso!");
+        // Verificar se já existe como membro
+        if (members.some(m => m.phone === phone)) {
+          alert("Este número já está registado. Podes fazer login diretamente!");
           initApp();
-        } else {
-          alert("Este número de telemóvel ainda não foi autorizado pelo Administrador!");
+          return;
         }
+
+        // Verificar se já há um pedido pendente para este telemóvel
+        if (registrationRequests.some(r => r.phone === phone)) {
+          alert("Já existe um pedido pendente com este número. Aguarda que o Administrador aprove!");
+          initApp();
+          return;
+        }
+
+        registrationRequests.push({
+          id: Date.now(),
+          name: name,
+          phone: phone,
+          pass: pass,
+          date: new Date().toLocaleDateString('pt-PT')
+        });
+
+        saveState();
+        alert("Pedido de criação de conta enviado com sucesso! O Administrador já o pode aceitar.");
+        initApp();
       }
     }
 
@@ -464,6 +480,23 @@
         return;
       }
 
+      // Pedidos de Registo Pendentes
+      let regRequestsHTML = registrationRequests.length === 0 
+        ? `<p class="text-secondary small m-0">Nenhum pedido de registo pendente.</p>`
+        : registrationRequests.map(req => `
+            <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-white rounded border border-success">
+              <div>
+                <strong>${req.name}</strong> (${req.phone})<br>
+                <small class="text-secondary">Pedido em: ${req.date}</small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-success me-1" onclick="approveRegRequest(${req.id})">Aprovar ✓</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="rejectRegRequest(${req.id})">Recusar</button>
+              </div>
+            </div>
+          `).join('');
+
+      // Pedidos de Carimbo Pendentes
       let requestsHTML = stampRequests.length === 0 
         ? `<p class="text-secondary small m-0">Nenhum pedido pendente.</p>`
         : stampRequests.map(req => `
@@ -513,17 +546,16 @@
         <div class="card-custom p-3 mt-2">
           <h5 class="fw-bold mb-3" style="color: #111827;"><i class="fa-solid fa-user-shield me-2 text-warning"></i>Painel Admin</h5>
           
-          <h6 class="fw-bold text-dark mt-2">🔔 Pedidos de Carimbo Pendentes:</h6>
+          <h6 class="fw-bold text-dark mt-2">👤 Pedidos de Nova Conta Pendentes:</h6>
           <div class="mb-3">
-            ${requestsHTML}
+            ${regRequestsHTML}
           </div>
 
           <hr>
 
-          <h6 class="fw-bold text-dark">📲 Autorizar Novo Telemóvel (Membro):</h6>
-          <div class="d-flex gap-2 mb-3">
-            <input type="tel" id="newMemberPhone" class="form-control form-control-sm bg-white text-dark border-secondary" placeholder="Ex: 919999999">
-            <button class="btn btn-sm btn-accent" onclick="addAuthorizedNumber()">Autorizar</button>
+          <h6 class="fw-bold text-dark mt-2">🔔 Pedidos de Carimbo Pendentes:</h6>
+          <div class="mb-3">
+            ${requestsHTML}
           </div>
 
           <hr>
@@ -563,31 +595,29 @@
       `;
     }
 
-    function addAuthorizedNumber() {
-      const phone = document.getElementById('newMemberPhone').value.trim();
-
-      if (!phone) {
-        alert("Por favor insere um número de telemóvel!");
-        return;
+    function approveRegRequest(reqId) {
+      const req = registrationRequests.find(r => r.id === reqId);
+      if (req) {
+        members.push({
+          id: Date.now(),
+          name: req.name,
+          phone: req.phone,
+          pass: req.pass,
+          isAdmin: false,
+          stamps: 0,
+          crosses: 0
+        });
+        registrationRequests = registrationRequests.filter(r => r.id !== reqId);
+        saveState();
+        alert(`Conta de ${req.name} aprovada com sucesso! Ele já pode entrar na app.`);
+        renderAdminTab(document.getElementById('app-content'));
       }
+    }
 
-      if (members.some(m => m.phone === phone)) {
-        alert("Este número já está na lista de membros!");
-        return;
-      }
-
-      members.push({
-        id: Date.now(),
-        name: 'Membro Convidado',
-        phone: phone,
-        pass: '',
-        isAdmin: false,
-        stamps: 0,
-        crosses: 0
-      });
-
+    function rejectRegRequest(reqId) {
+      registrationRequests = registrationRequests.filter(r => r.id !== reqId);
       saveState();
-      alert(`Telemóvel ${phone} autorizado com sucesso!`);
+      alert("Pedido de registo recusado.");
       renderAdminTab(document.getElementById('app-content'));
     }
 
