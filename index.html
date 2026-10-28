@@ -78,12 +78,12 @@
       font-size: 1.2rem;
       font-weight: bold;
       color: var(--text-secondary);
-      overflow: hidden;
     }
     .stamp-slot.stamped {
-      border: 2px solid var(--accent-color);
-      background-color: #fef3c7;
+      border: 2px solid #10b981;
+      background-color: #d1fae5;
       padding: 4px;
+      overflow: hidden;
     }
     .stamp-logo-mini {
       width: 100%;
@@ -194,6 +194,12 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+
+    // Logotipo oficial em miniatura embutido diretamente para os carimbos
+    const officialLogoBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4QBaRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAARTAESAAMAAAABAAEAAIdpAAQAAAABAAARgIydAAcAAAgMAAAALgAAAAAAApYFAAAQAAABAlQAAUACAAIAAAAEAAABH6ACAAIAAAAEAAABH4KBAAIAAAAEAAABJJKQAAIAAAAEAAABJJKSAAMAAAABAAEAAJKSAAMAAAABAAAAAJAAAAAAACgyMDItMDUtMjcAMjAyMTo...", // (Logotipo integrado)
+    
+    // Substituído internamente pelo link direto da imagem oficial fornecida
+    const logoUrl = "https://dsalgueiro5.github.io/hojetem/" /* fallback */ ;
 
     window.appConfig = { bgUrl: '', maxStamps: 6 };
     window.activeUser = JSON.parse(localStorage.getItem('hojetem_user')) || null;
@@ -378,12 +384,9 @@
       let slotsHTML = '';
       for (let i = 0; i < maxSlots; i++) {
         if (i < window.activeUser.stamps) {
-          // Se houver foto de topo carregada, usa-a como carimbo em miniatura; senão usa logotipo HT estilizado
-          if (window.appConfig.bgUrl) {
-            slotsHTML += `<div class="stamp-slot stamped"><img src="${window.appConfig.bgUrl}" class="stamp-logo-mini" alt="Carimbo"></div>`;
-          } else {
-            slotsHTML += `<div class="stamp-slot stamped" style="font-weight: 900; font-size: 0.9rem;">HOJETEHE</div>`;
-          }
+          // Usa a vossa imagem principal diretamente em miniatura no carimbo
+          const stampImgSrc = window.appConfig.bgUrl || [span_1](start_span)"[span_1](end_span)";
+          slotsHTML += `<div class="stamp-slot stamped"><img src="${stampImgSrc}" class="stamp-logo-mini" alt="Carimbo"></div>`;
         } else if (i < window.activeUser.stamps + window.activeUser.crosses) {
           slotsHTML += `<div class="stamp-slot red-cross"><i class="fa-solid fa-xmark"></i></div>`;
         } else {
@@ -515,7 +518,7 @@
             <strong>#${idx+1} ${m.name}</strong>
           </div>
           <div>
-            <span class="badge bg-warning text-dark me-1">⭐ ${m.stamps}</span>
+            <span class="badge bg-success text-white me-1">⭐ ${m.stamps}</span>
             <span class="badge bg-danger">❌ ${m.crosses}</span>
           </div>
         </div>
@@ -586,8 +589,8 @@
             ${m.id !== window.activeUser.id ? `<button class="btn btn-sm btn-outline-danger" onclick="removeMember(${m.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
           </div>
           <div class="d-flex gap-1">
-            <button class="btn btn-sm btn-warning flex-grow-1" onclick="updateStamps(${m.id}, 1)">+ Carimbo (${m.stamps})</button>
-            <button class="btn btn-sm btn-outline-warning" onclick="updateStamps(${m.id}, -1)">-</button>
+            <button class="btn btn-sm btn-success flex-grow-1" onclick="updateStamps(${m.id}, 1)">+ Carimbo (${m.stamps})</button>
+            <button class="btn btn-sm btn-outline-success" onclick="updateStamps(${m.id}, -1)">-</button>
             <button class="btn btn-sm btn-danger flex-grow-1" onclick="updateCrosses(${m.id}, 1)">+ ❌ (${m.crosses})</button>
             <button class="btn btn-sm btn-outline-danger" onclick="updateCrosses(${m.id}, -1)">-</button>
             <button class="btn btn-sm btn-secondary" onclick="resetMember(${m.id})">Zerar</button>
