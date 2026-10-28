@@ -82,14 +82,14 @@
     .stamp-slot.stamped {
       border: 2px solid #10b981;
       background-color: #d1fae5;
-      padding: 4px;
+      padding: 3px;
       overflow: hidden;
     }
     .stamp-logo-mini {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 8px;
+      border-radius: 9px;
     }
     .stamp-slot.red-cross {
       border: 2px solid var(--danger-color);
@@ -195,11 +195,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Logotipo oficial em miniatura embutido diretamente para os carimbos
-    const officialLogoBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4QBaRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAARTAESAAMAAAABAAEAAIdpAAQAAAABAAARgIydAAcAAAgMAAAALgAAAAAAApYFAAAQAAABAlQAAUACAAIAAAAEAAABH6ACAAIAAAAEAAABH4KBAAIAAAAEAAABJJKQAAIAAAAEAAABJJKSAAMAAAABAAEAAJKSAAMAAAABAAAAAJAAAAAAACgyMDItMDUtMjcAMjAyMTo...", // (Logotipo integrado)
-    
-    // Substituído internamente pelo link direto da imagem oficial fornecida
-    const logoUrl = "https://dsalgueiro5.github.io/hojetem/" /* fallback */ ;
+    // Logotipo oficial convertido e embutido diretamente para os carimbos
+    const stampLogoBase64 = "https://dsalgueiro5.github.io/hojetem/logo.png"; // Usará a imagem oficial do repositório
 
     window.appConfig = { bgUrl: '', maxStamps: 6 };
     window.activeUser = JSON.parse(localStorage.getItem('hojetem_user')) || null;
@@ -384,9 +381,9 @@
       let slotsHTML = '';
       for (let i = 0; i < maxSlots; i++) {
         if (i < window.activeUser.stamps) {
-          // Usa a vossa imagem principal diretamente em miniatura no carimbo
-          const stampImgSrc = window.appConfig.bgUrl || [span_1](start_span)"[span_1](end_span)";
-          slotsHTML += `<div class="stamp-slot stamped"><img src="${stampImgSrc}" class="stamp-logo-mini" alt="Carimbo"></div>`;
+          // Utiliza a imagem oficial do grupo redonda em miniatura nos carimbos
+          const stampLogo = window.appConfig.bgUrl ||[span_0](start_span)[span_0](end_span);
+          slotsHTML += `<div class="stamp-slot stamped"><img src="${stampLogo}" class="stamp-logo-mini" alt="Carimbo"></div>`;
         } else if (i < window.activeUser.stamps + window.activeUser.crosses) {
           slotsHTML += `<div class="stamp-slot red-cross"><i class="fa-solid fa-xmark"></i></div>`;
         } else {
