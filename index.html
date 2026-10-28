@@ -75,14 +75,21 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
-      font-weight: 900;
+      font-size: 1.2rem;
+      font-weight: bold;
       color: var(--text-secondary);
+      overflow: hidden;
     }
     .stamp-slot.stamped {
       border: 2px solid var(--accent-color);
       background-color: #fef3c7;
-      color: var(--accent-color);
+      padding: 4px;
+    }
+    .stamp-logo-mini {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
     }
     .stamp-slot.red-cross {
       border: 2px solid var(--danger-color);
@@ -371,8 +378,12 @@
       let slotsHTML = '';
       for (let i = 0; i < maxSlots; i++) {
         if (i < window.activeUser.stamps) {
-          // Logotipo em ponto pequeno (HT estilizado) no lugar do carimbo de cerveja
-          slotsHTML += `<div class="stamp-slot stamped" style="letter-spacing: -1px; font-size: 0.95rem;">HT</div>`;
+          // Se houver foto de topo carregada, usa-a como carimbo em miniatura; senão usa logotipo HT estilizado
+          if (window.appConfig.bgUrl) {
+            slotsHTML += `<div class="stamp-slot stamped"><img src="${window.appConfig.bgUrl}" class="stamp-logo-mini" alt="Carimbo"></div>`;
+          } else {
+            slotsHTML += `<div class="stamp-slot stamped" style="font-weight: 900; font-size: 0.9rem;">HOJETEHE</div>`;
+          }
         } else if (i < window.activeUser.stamps + window.activeUser.crosses) {
           slotsHTML += `<div class="stamp-slot red-cross"><i class="fa-solid fa-xmark"></i></div>`;
         } else {
@@ -432,10 +443,10 @@
         return;
       }
 
-      const hojeStr = new Date().toISOString().split('T')[0]; // Data atual (YYYY-MM-DD)
+      const hojeStr = new Date().toISOString().split('T')[0];
 
       let eventsHTML = window.events.map(ev => {
-        const isFinished = ev.date < hojeStr; // Se a data do evento já passou da de hoje
+        const isFinished = ev.date < hojeStr;
         const userStatus = ev.rsvp ? ev.rsvp[window.activeUser.id] : null;
         let goingList = [];
         let notGoingList = [];
@@ -453,7 +464,7 @@
         return `
           <div class="card-custom p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <h5 class="fw-bold m-0" style="color: #111827;"><i class="fa-solid fa-utensils me-2 text-warning"></i>${ev.title}</h5>
+              <h5 class="fw-bold m-0" style="color: #111827;"><i class="fa-solid fa-calendar-check me-2 text-warning"></i>${ev.title}</h5>
               ${isFinished ? '<span class="badge bg-secondary text-white">Evento Finalizado</span>' : '<span class="badge bg-success text-white">Ativo</span>'}
             </div>
             <p class="text-secondary mb-1"><i class="fa-regular fa-calendar me-2"></i>${ev.date}</p>
@@ -504,7 +515,7 @@
             <strong>#${idx+1} ${m.name}</strong>
           </div>
           <div>
-            <span class="badge bg-warning text-dark me-1">HT ${m.stamps}</span>
+            <span class="badge bg-warning text-dark me-1">⭐ ${m.stamps}</span>
             <span class="badge bg-danger">❌ ${m.crosses}</span>
           </div>
         </div>
@@ -548,7 +559,7 @@
                 <small class="text-secondary">${req.date}</small>
               </div>
               <div>
-                <button class="btn btn-sm btn-success me-1" onclick="approveRequest(${req.id}, ${req.memberId})">Aprovar HT</button>
+                <button class="btn btn-sm btn-success me-1" onclick="approveRequest(${req.id}, ${req.memberId})">Aprovar Carimbo</button>
                 <button class="btn btn-sm btn-outline-danger" onclick="rejectRequest(${req.id})">Recusar</button>
               </div>
             </div>
@@ -575,10 +586,10 @@
             ${m.id !== window.activeUser.id ? `<button class="btn btn-sm btn-outline-danger" onclick="removeMember(${m.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
           </div>
           <div class="d-flex gap-1">
-            <button class="btn btn-sm btn-warning flex-grow-1" onclick="updateStamps(${m.id}, 1)">+ HT (${m.stamps})</button>
-            <button class="btn btn-sm btn-outline-warning" onclick="updateStamps(${m.id}, -1)">- HT</button>
+            <button class="btn btn-sm btn-warning flex-grow-1" onclick="updateStamps(${m.id}, 1)">+ Carimbo (${m.stamps})</button>
+            <button class="btn btn-sm btn-outline-warning" onclick="updateStamps(${m.id}, -1)">-</button>
             <button class="btn btn-sm btn-danger flex-grow-1" onclick="updateCrosses(${m.id}, 1)">+ ❌ (${m.crosses})</button>
-            <button class="btn btn-sm btn-outline-danger" onclick="updateCrosses(${m.id}, -1)">- ❌</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="updateCrosses(${m.id}, -1)">-</button>
             <button class="btn btn-sm btn-secondary" onclick="resetMember(${m.id})">Zerar</button>
           </div>
         </div>
